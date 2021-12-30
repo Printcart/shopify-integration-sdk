@@ -3,7 +3,7 @@
     sdkUrl:
       "https://d1jkuyr6ycnsww.cloudfront.net/design-tool/1.0.0/main.js",
 
-    apiUrl: "http://localhost:8001/api/v1/integration/shopify/products/",
+    apiUrl: "https://api.printcart.com/v1/integration/shopify/products/",
 
     token: "",
 
