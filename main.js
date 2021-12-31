@@ -1,9 +1,13 @@
 (function () {
   var shopifyIntegration = {
-    sdkUrl:
-      "https://d1jkuyr6ycnsww.cloudfront.net/design-tool/1.0.0/main.js",
+    // sdkUrl:
+    //   "https://d1jkuyr6ycnsww.cloudfront.net/design-tool/1.0.0/main.js",
 
-    apiUrl: "https://api.printcart.com/v1/integration/shopify/products/",
+    // apiUrl: "https://api.printcart.com/v1/integration/shopify/products/",
+
+    sdkUrl: __SDK_URL__,
+
+    apiUrl: __API_URL__,
 
     token: "",
 
