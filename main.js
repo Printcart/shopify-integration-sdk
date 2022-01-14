@@ -16,20 +16,28 @@
     init: function () {
       this.token = this.getUnauthToken();
 
-      var shopifyProduct = this.getShopifyProduct();
+      var getProductPromise = this.getShopifyProduct();
 
-      if (shopifyProduct) {
-        const variantId = shopifyProduct.variants[0].id;
+      if (getProductPromise) {
+        getProductPromise
+          .then((shopifyProduct) => {
+            if (shopifyProduct) {
+              const variantId = shopifyProduct.variants[0].id;
 
-        this.getPrintcartProductByShopifyId(variantId)
-          .then((res) => {
-            var printcartProductId = res.data.id;
+              this.getPrintcartProductByShopifyId(variantId)
+                .then((res) => {
+                  var printcartProductId = res.data.id;
 
-            this.addSdkToPage(printcartProductId);
+                  this.addSdkToPage(printcartProductId);
 
-            this.registerMessageEvent(shopifyProduct);
+                  this.registerMessageEvent(shopifyProduct);
+                })
+                .catch((err) => {
+                  console.warn(err.message);
+                });
+            }
           })
-          .catch((err) => console.warn(err.message));
+          .catch((err) => console.log(err));
       }
     },
 
@@ -67,39 +75,40 @@
     },
 
     getShopifyProduct: function () {
-      var product;
-
-      var jsonElList = Array.from(document.querySelectorAll("script"));
-      var productJsonEl = jsonElList.find(
-        (jsonEl) => jsonEl.id && jsonEl.id.startsWith("ProductJson-")
-      );
-
-      if (productJsonEl) {
-        product = JSON.parse(productJsonEl.innerHTML);
-      } else {
-        this.getProductJsonObject()
-          .then((res) => {
-            product = res;
-          })
-          .catch((err) => console.log(err));
-      }
-
-      return product;
-    },
-
-    getProductJsonObject: function () {
       var url = window.location.href;
       var urlArr = url.split("/");
-      var handle = urlArr[urlArr.length - 1];
+      var handle = urlArr[urlArr.length - 1].split("?")[0];
+
+      if (handle === "") return;
+
       var productJsonUrl = "/products/" + handle + ".js";
 
       return fetch(productJsonUrl, {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(body),
-      });
+      }).then((res) => res.json());
     },
+
+    // getProductJsonObject: function () {
+    //   var url = window.location.href;
+    //   var urlArr = url.split("/");
+    //   var handle = urlArr[urlArr.length - 1];
+    //   var productJsonUrl = "/products/" + handle + ".js";
+
+    //   fetch(productJsonUrl, {
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //   })
+    //     .then((res) => {
+    //       return res.json();
+    //     })
+    //     .then((data) => {
+    //       return data;
+    //     })
+    //     .catch((err) => console.log(err));
+    // },
 
     addSdkToPage: function (productId) {
       if (!productId) {
