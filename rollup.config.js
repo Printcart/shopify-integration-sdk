@@ -16,6 +16,7 @@ export default {
     replace({
       __SDK_URL__: JSON.stringify(process.env.SDK_URL),
       __API_URL__: JSON.stringify(process.env.API_URL),
+      __CUSTOMIZER_URL__: JSON.stringify(process.env.CUSTOMIZER_URL),
     }),
     terser({
       ecma: 2018,
