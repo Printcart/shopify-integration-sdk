@@ -44,14 +44,15 @@
     registerMessageEvent: function (product) {
       window.addEventListener("message", (event) => {
         if (event.origin === this.customizerUrl) {
+          const ids = event.data.designIds;
+
           const body = {
             items: [
               {
                 id: product.variants[0].id,
                 quantity: 1,
-                properties: {
-                  _pcDesignUrl: "<a href='https://google.com'>Test</a>",
-                  _pcDesignId: "12637123713",
+                properties: {                  
+                  _pcDesignIds: ids,
                 },
               },
             ],
@@ -150,7 +151,6 @@
       var url = this.apiUrl + shopifyId;
       var authStr = "Bearer " + this.token;
 
-      // TODO: Add fetch polyfill
       return fetch(url, {
         headers: {
           Authorization: authStr,
