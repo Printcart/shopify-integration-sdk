@@ -149,11 +149,12 @@
       }
 
       var url = this.apiUrl + shopifyId;
-      var authStr = "Bearer " + this.token;
+      // var authStr = "Bearer " + this.token;
 
       return fetch(url, {
         headers: {
-          Authorization: authStr,
+          // Authorization: authStr,
+          "X-PrintCart-Unauth-Token": this.token,
         },
       }).then((res) => res.json());
     },
