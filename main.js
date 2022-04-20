@@ -43,22 +43,33 @@
 
     registerMessageEvent: function (product) {
       window.addEventListener("message", (event) => {
-        if (event.origin === this.customizerUrl) {
-          const ids = event.data.designIds;
+        if (
+          event.origin === this.customizerUrl &&
+          event.data.message === "finishProcess"
+        ) {
+          var designs = event.data.data.data;
 
-          const body = {
+          var ids = designs.map((design) => design.id);
+
+          var shopifyProductId = designs[0].product.integration_product_id;
+
+          var body = {
             items: [
               {
-                id: product.variants[0].id,
+                id: shopifyProductId,
                 quantity: 1,
-                properties: {                  
+                properties: {
                   _pcDesignIds: ids,
                 },
               },
             ],
           };
 
-          fetch("/cart/add.js", {
+          var root = window.Shopify.routes.root;
+
+          console.log(root);
+
+          fetch(root + "cart/add.js", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -66,7 +77,15 @@
             body: JSON.stringify(body),
           })
             .then((res) => {
-              console.log(res);
+              if (res.ok) {
+                //TODO: if res is not ok => postMessage to design tool for error promt
+                var wrapper = document.getElementById(
+                  "pcdesigntool-iframe-wrapper"
+                );
+
+                wrapper.style.opacity = 0;
+                wrapper.style.visibility = "hidden";
+              }
             })
             .catch((err) => console.log(err));
         }
