@@ -18,17 +18,17 @@ export default {
       __API_URL__: JSON.stringify(process.env.API_URL),
       __CUSTOMIZER_URL__: JSON.stringify(process.env.CUSTOMIZER_URL),
     }),
-    terser({
-      ecma: 2018,
-      mangle: { toplevel: true },
-      compress: {
-        module: true,
-        toplevel: true,
-        unsafe_arrows: true,
-        drop_console: !dev,
-        drop_debugger: !dev,
-      },
-      output: { quote_style: 1 },
-    }),
+    // terser({
+    //   ecma: 2018,
+    //   mangle: { toplevel: true },
+    //   compress: {
+    //     module: true,
+    //     toplevel: true,
+    //     unsafe_arrows: true,
+    //     drop_console: !dev,
+    //     drop_debugger: !dev,
+    //   },
+    //   output: { quote_style: 1 },
+    // }),
   ],
 };
