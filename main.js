@@ -4,8 +4,6 @@
     //   "https://d1jkuyr6ycnsww.cloudfront.net/design-tool/1.0.0/main.js",
 
     // apiUrl: "https://api.printcart.com/v1/integration/shopify/products/",
-    
-    // abc
 
     customizerSdkUrl: __SDK_URL__,
 
