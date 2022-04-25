@@ -12,7 +12,7 @@ phases:
   post_build:
     commands:
       - echo Build completed on `date`
-# artifacts:
-#   files:
-#     - dist/main.js
-#   discard-paths: yes
+artifacts:
+  files:
+    - dist/main.js
+  discard-paths: yes
