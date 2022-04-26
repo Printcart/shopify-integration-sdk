@@ -15,4 +15,4 @@ phases:
 artifacts:
   files:
     - dist/main.js
-  discard-paths: yes
+  # discard-paths: yes
