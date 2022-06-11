@@ -84,6 +84,8 @@ var shopifyIntegration = {
 
               wrapper.style.opacity = 0;
               wrapper.style.visibility = "hidden";
+
+              location.reload();
             }
           })
           .catch((err) => console.log(err));
