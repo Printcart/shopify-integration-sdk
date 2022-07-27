@@ -1,183 +1,124 @@
-var shopifyIntegration = {
-  // sdkUrl:
-  //   "https://d1jkuyr6ycnsww.cloudfront.net/design-tool/1.0.0/main.js",
-
-  // apiUrl: "https://api.printcart.com/v1/integration/shopify/products/",
-
-  customizerSdkUrl: __SDK_URL__,
-
-  apiUrl: __API_URL__,
-
-  token: "",
-
-  customizerUrl: __CUSTOMIZER_URL__,
-
+var designTool = {
   init: function () {
-    this.token = this.getUnauthToken();
+    const settings = this.getSettings();
 
-    var getProductPromise = this.getShopifyProduct();
+    const btnId = settings && settings.buttonId ? settings.buttonId : null;
 
-    if (getProductPromise) {
-      getProductPromise
-        .then((shopifyProduct) => {
-          if (shopifyProduct) {
-            const variantId = shopifyProduct.variants[0].id;
+    this.createDesignButton(btnId);
 
-            this.getPrintcartProductByShopifyId(variantId)
-              .then((res) => {
-                var printcartProductId = res.data.id;
+    this.createIframe();
 
-                this.addSdkToPage(printcartProductId);
+    window.addEventListener(
+      "message",
+      (event) => {
+        const designToolUrl = import.meta.env.VITE_CUSTOMIZER_URL;
 
-                this.registerMessageEvent(shopifyProduct);
-              })
-              .catch((err) => {
-                console.warn(err.message);
-              });
-          }
-        })
-        .catch((err) => console.log(err));
-    }
-  },
+        if (
+          event.origin === designToolUrl &&
+          event.data.message === "closeDesignTool"
+        ) {
+          let wrapper = document.getElementById("pcdesigntool-iframe-wrapper");
 
-  registerMessageEvent: function (product) {
-    window.addEventListener("message", (event) => {
-      if (
-        event.origin === this.customizerUrl &&
-        event.data.message === "finishProcess"
-      ) {
-        var designs = event.data.data.data;
+          wrapper.style.opacity = 0;
+          wrapper.style.visibility = "hidden";
+        }
 
-        var ids = designs.map((design) => design.id);
+        if (event.data.message === "finishLoad") {
+          const iframe = document.getElementById("pcdesigntool-iframe");
 
-        var shopifyProductId = designs[0].product.integration_product_id;
-
-        var body = {
-          items: [
-            {
-              id: shopifyProductId,
-              quantity: 1,
-              properties: {
-                _pcDesignIds: ids,
-              },
-            },
-          ],
-        };
-
-        var root = window.Shopify.routes.root;
-
-        console.log(root);
-
-        fetch(root + "cart/add.js", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(body),
-        })
-          .then((res) => {
-            if (res.ok) {
-              //TODO: if res is not ok => postMessage to design tool for error promt
-              var wrapper = document.getElementById(
-                "pcdesigntool-iframe-wrapper"
-              );
-
-              wrapper.style.opacity = 0;
-              wrapper.style.visibility = "hidden";
-            }
-          })
-          .catch((err) => console.log(err));
-      }
-    });
-
-    return;
-  },
-
-  getShopifyProduct: function () {
-    var url = window.location.href;
-    var urlArr = url.split("/");
-    var handle = urlArr[urlArr.length - 1].split("?")[0];
-
-    if (handle === "") return;
-
-    var productJsonUrl = "/products/" + handle + ".js";
-
-    return fetch(productJsonUrl, {
-      headers: {
-        "Content-Type": "application/json",
+          iframe.contentWindow.postMessage(
+            { message: "customSettings", settings: settings },
+            designToolUrl
+          );
+        }
       },
-    }).then((res) => res.json());
-  },
-
-  // getProductJsonObject: function () {
-  //   var url = window.location.href;
-  //   var urlArr = url.split("/");
-  //   var handle = urlArr[urlArr.length - 1];
-  //   var productJsonUrl = "/products/" + handle + ".js";
-
-  //   fetch(productJsonUrl, {
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //     },
-  //   })
-  //     .then((res) => {
-  //       return res.json();
-  //     })
-  //     .then((data) => {
-  //       return data;
-  //     })
-  //     .catch((err) => console.log(err));
-  // },
-
-  addSdkToPage: function (productId) {
-    if (!productId) {
-      throw new Error("Missing Printcart Product ID");
-    }
-
-    var script, scriptContent;
-    scriptContent = document.createElement("script");
-    scriptContent.type = "text/javascript";
-    scriptContent.async = true;
-    scriptContent.id = "printcart-design-tool-sdk";
-    scriptContent.setAttribute("data-unauthToken", this.token);
-    scriptContent.setAttribute("data-productId", productId);
-    scriptContent.src = this.customizerSdkUrl;
-    script = document.getElementsByTagName("script")[0];
-    return script.parentNode.insertBefore(scriptContent, script);
-  },
-
-  getUnauthToken: function () {
-    var token = null;
-
-    var urlSearchParams = new URLSearchParams(
-      document.currentScript.src.split("?")[1]
+      false
     );
-    var params = Object.fromEntries(urlSearchParams.entries());
-
-    if (params.shopT) {
-      token = params.shopT;
-    }
-
-    return token;
   },
 
-  getPrintcartProductByShopifyId: function (shopifyId) {
-    if (!shopifyId) {
-      throw new Error("Missing Shopify ID");
+  getSettings: function () {
+    const settings = window.PCDesignToolSettings;
+
+    return settings;
+  },
+
+  createDesignButton: function (btnId) {
+    if (btnId) {
+      let btn = document.getElementById(btnId);
+
+      btn.onclick = this.designBtnOnclickHandler;
+
+      return;
     }
 
-    var url = this.apiUrl + shopifyId;
-    // var authStr = "Bearer " + this.token;
+    let designBtn = document.createElement("button");
 
-    return fetch(url, {
-      headers: {
-        // Authorization: authStr,
-        "X-PrintCart-Unauth-Token": this.token,
-      },
-    }).then((res) => res.json());
+    designBtn.id = "pcdesigntool-design-btn";
+    designBtn.onclick = this.designBtnOnclickHandler;
+    designBtn.style.cssText =
+      "position:fixed;top:50%;right:0;z-index:9999;padding:12px 16px;font-size:1.5rem;background:#2F7BF8;color:#fff;border:0;border-radius:4px";
+    designBtn.textContent = "Start Design";
+
+    document.body.appendChild(designBtn);
+  },
+
+  createIframe: function () {
+    let wrapper = document.createElement("div");
+
+    wrapper.id = "pcdesigntool-iframe-wrapper";
+
+    wrapper.style.cssText =
+      "position:fixed;top:0;left:0;width:100vw;height:100vh;opacity:0;visibility:hidden;z-index:99999";
+
+    let iframe = document.createElement("iframe");
+
+    iframe.id = "pcdesigntool-iframe";
+
+    iframe.width = "100%";
+    iframe.height = "100%";
+    iframe.scrolling = "no";
+    iframe.frameBorder = "0";
+    iframe.noresize = "noresize";
+    iframe.allowfullscreen = 1;
+    iframe.mozallowfullscreen = 1;
+    iframe.webkitallowfullscreen = 1;
+    // iframe.setAttribute("data-src", iframeSrc);
+
+    wrapper.appendChild(iframe);
+    document.body.appendChild(wrapper);
+  },
+
+  designBtnOnclickHandler: function (event) {
+    event.preventDefault();
+    let wrapper = document.getElementById("pcdesigntool-iframe-wrapper");
+    let iframe = document.getElementById("pcdesigntool-iframe");
+    let script = document.getElementById("printcart-design-tool-sdk");
+
+    const url = new URL(window.location.href);
+
+    const apiKey = script.getAttribute("data-unauthToken");
+    const productId = script.getAttribute("data-productId");
+
+    const designToolUrl = import.meta.env.VITE_CUSTOMIZER_URL;
+
+    const src =
+      designToolUrl +
+      "?api_key=" +
+      apiKey +
+      "&product_id=" +
+      productId +
+      "&parentUrl=" +
+      url.origin;
+
+    iframe.src = src;
+
+    wrapper.style.opacity = 1;
+    wrapper.style.visibility = "visible";
   },
 };
 
-shopifyIntegration.init();
+designTool.init();
 
-window["PrintcartShopifySDK"] = shopifyIntegration;
+// designTool.prototype.open = designTool.designBtnOnclickHandler;
+
+window["PrintcartDesignTool"] = designTool;
