@@ -1,26 +1,15 @@
 {
-  "name": "shopify-integration-sdk",
-  "version": "1.0.0",
-  "description": "Printcart SDK for Shopify.",
-  "main": "main.js",
+  "name": "design-tool-shopify-sdk",
+  "private": true,
+  "version": "0.0.0",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "rollup --config"
+    "dev": "vite --port 3102",
+    "dev-tunnel": "vite --port 3102 && lt --port 3102",
+    "build": "vite build",
+    "build-watch": "vite build --watch",
+    "preview": "vite preview --port 4102"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Printcart/shopify-integration-sdk.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/Printcart/shopify-integration-sdk/issues"
-  },
-  "homepage": "https://github.com/Printcart/shopify-integration-sdk#readme",
   "devDependencies": {
-    "@rollup/plugin-replace": "^3.0.1",
-    "dotenv": "^10.0.0",
-    "rollup": "^2.62.0",
-    "rollup-plugin-terser": "^7.0.2"
+    "vite": "^2.9.9"
   }
 }

@@ -1,16 +1,11 @@
 var shopifyIntegration = {
-  // sdkUrl:
-  //   "https://d1jkuyr6ycnsww.cloudfront.net/design-tool/1.0.0/main.js",
+  customizerSdkUrl: import.meta.env.VITE_SDK_URL,
 
-  // apiUrl: "https://api.printcart.com/v1/integration/shopify/products/",
-
-  customizerSdkUrl: __SDK_URL__,
-
-  apiUrl: __API_URL__,
+  apiUrl: import.meta.env.VITE_API_URL,
 
   token: "",
 
-  customizerUrl: __CUSTOMIZER_URL__,
+  customizerUrl: import.meta.env.VITE_CUSTOMIZER_URL,
 
   init: function () {
     this.token = this.getUnauthToken();
@@ -50,6 +45,7 @@ var shopifyIntegration = {
 
         var ids = designs.map((design) => design.id);
 
+        //TODO: support multiple product
         var shopifyProductId = designs[0].product.integration_product_id;
 
         var body = {
@@ -65,8 +61,6 @@ var shopifyIntegration = {
         };
 
         var root = window.Shopify.routes.root;
-
-        console.log(root);
 
         fetch(root + "cart/add.js", {
           method: "POST",
@@ -147,16 +141,17 @@ var shopifyIntegration = {
   },
 
   getUnauthToken: function () {
-    var token = null;
+    const isDev = import.meta.env.MODE === "development";
 
-    var urlSearchParams = new URLSearchParams(
-      document.currentScript.src.split("?")[1]
-    );
-    var params = Object.fromEntries(urlSearchParams.entries());
+    const src = isDev ? import.meta.url : document.currentScript.src;
 
-    if (params.shopT) {
-      token = params.shopT;
-    }
+    const url = new URL(src);
+
+    const params = new URLSearchParams(url.search);
+
+    const token = params.get("shopT");
+
+    if (isDev) console.log(token);
 
     return token;
   },
@@ -167,11 +162,9 @@ var shopifyIntegration = {
     }
 
     var url = this.apiUrl + shopifyId;
-    // var authStr = "Bearer " + this.token;
 
     return fetch(url, {
       headers: {
-        // Authorization: authStr,
         "X-PrintCart-Unauth-Token": this.token,
       },
     }).then((res) => res.json());
