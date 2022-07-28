@@ -15,11 +15,11 @@ module.exports = defineConfig({
       },
     },
   },
-  // server: {
-  //   hmr: {
-  //     // clientPort: 443,
-  //     protocol: "ws",
-  //     port: 3101,
-  //   },
-  // },
+  server: {
+    hmr: {
+      clientPort: 443,
+      // protocol: "ws",
+      // port: 3101,
+    },
+  },
 });
