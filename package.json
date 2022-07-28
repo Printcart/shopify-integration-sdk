@@ -4,7 +4,6 @@
   "version": "0.0.0",
   "scripts": {
     "dev": "vite --port 3102",
-    "dev-tunnel": "vite --port 3102 && lt --port 3102",
     "build": "vite build",
     "build-watch": "vite build --watch",
     "preview": "vite preview --port 4102"
