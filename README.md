@@ -6,7 +6,7 @@ Add CSS file to header:
 
 ```html
 <link
-  href="https://unpkg.com/@printcart/shopify-integration-sdk/dist/style.css"
+  href="https://unpkg.com/@printcart/shopify-integration/dist/style.css"
   rel="stylesheet"
 />
 ```
@@ -14,7 +14,7 @@ Add CSS file to header:
 Add JS file before the closing body tag:
 
 ```html
-<script src="https://unpkg.com/@printcart/shopify-integration-sdk/dist/main.js"></script>
+<script src="https://unpkg.com/@printcart/shopify-integration/dist/main.js"></script>
 ```
 
 ## Options
