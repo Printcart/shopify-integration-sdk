@@ -1,5 +1,5 @@
 {
-  "name": "@printcart/design-tool-sdk",
+  "name": "@printcart/shopify-integration",
   "type": "module",
   "files": [
     "dist"
