@@ -4,8 +4,8 @@ const { defineConfig } = require("vite");
 module.exports = defineConfig({
   build: {
     lib: {
-      entry: path.resolve(__dirname, "main.js"),
-      name: "MyLib",
+      entry: path.resolve(__dirname, "src/main.ts"),
+      name: "PrintcartShopifySDK",
       fileName: (format) => {
         if (format === "umd") {
           return "main.js";
@@ -15,11 +15,11 @@ module.exports = defineConfig({
       },
     },
   },
-  server: {
-    hmr: {
-      clientPort: 443,
-      // protocol: "ws",
-      // port: 3101,
-    },
-  },
+  // server: {
+  //   hmr: {
+  //     clientPort: 443,
+  //     // protocol: "ws",
+  //     // port: 3101,
+  //   },
+  // },
 });

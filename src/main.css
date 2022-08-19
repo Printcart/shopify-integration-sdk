@@ -1,0 +1,29 @@
+#printcart-designer_image-wrap {
+    margin-top: 16px;
+    margin-bottom: 16px;
+}
+
+.printcart-designer_edit-button {
+  display: inline-flex;
+  position: relative;
+  margin-right: 8px;
+  border-radius: 4px;
+  padding: 0;
+  border: 1px solid #ccc;
+  transition: 0.2s;
+}
+
+.printcart-designer_image {
+  max-width: 80px;
+  height: auto;
+}
+
+.printcart-designer_overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  cursor: pointer;
+  display: none;
+}

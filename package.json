@@ -1,14 +1,51 @@
 {
-  "name": "design-tool-shopify-sdk",
-  "private": true,
-  "version": "0.0.0",
+  "name": "@printcart/design-tool-sdk",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "version": "1.0.0",
   "scripts": {
     "dev": "vite --port 3102",
     "build": "vite build",
     "build-watch": "vite build --watch",
     "preview": "vite preview --port 4102"
   },
+  "description": "Printcart Designer SDK for Shopify.",
+  "author": "Printcart <dev@printcart.com> (printcart.com)",
+  "main": "./dist/main.js",
+  "module": "./dist/main.es.js",
+  "exports": {
+    ".": {
+      "import": "./dist/main.es.js",
+      "require": "./dist/main.js"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Printcart/shopify-integration-sdk"
+  },
+  "keywords": [
+    "sdk",
+    "printing",
+    "printingAPI",
+    "api",
+    "product customizer",
+    "customizer",
+    "ecommerce",
+    "web2print",
+    "web-to-print",
+    "shopify"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Printcart/shopify-integration-sdk"
+  },
+  "homepage": "https://github.com/Printcart/shopify-integration-sdk#readme",
   "devDependencies": {
     "vite": "^2.9.9"
+  },
+  "dependencies": {
+    "@printcart/design-tool-sdk": "^1.4.0"
   }
 }
