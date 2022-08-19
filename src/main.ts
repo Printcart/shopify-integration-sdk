@@ -2,6 +2,7 @@
 import PrintcartDesigner from "@printcart/design-tool-sdk";
 import "./main.css";
 
+// TODO: on error events
 interface IOptions {
   buttonId?: string;
   designBtnText?: string;
@@ -10,7 +11,6 @@ interface IOptions {
   onEditSuccess?: (data: any) => void;
 }
 
-// TODO: Show design link and image in cart
 class PrintcartDesignerShopify {
   #apiUrl: string;
   token: string | null;
