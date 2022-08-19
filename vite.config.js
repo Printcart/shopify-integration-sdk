@@ -1,11 +1,17 @@
-const path = require("path");
-const { defineConfig } = require("vite");
+import { resolve, dirname } from "path";
+import { defineConfig } from "vite";
+import { fileURLToPath } from "url";
 
-module.exports = defineConfig({
+const _dirname =
+  typeof __dirname !== "undefined"
+    ? __dirname
+    : dirname(fileURLToPath(import.meta.url));
+
+export default defineConfig({
   build: {
     lib: {
-      entry: path.resolve(__dirname, "src/main.ts"),
-      name: "PrintcartShopifySDK",
+      entry: resolve(_dirname, "src/main.ts"),
+      name: "PrintcartShopify",
       fileName: (format) => {
         if (format === "umd") {
           return "main.js";
@@ -17,9 +23,9 @@ module.exports = defineConfig({
   },
   // server: {
   //   hmr: {
-  //     clientPort: 443,
-  //     // protocol: "ws",
-  //     // port: 3101,
+  //     // clientPort: 443,
+  //     protocol: "ws",
+  //     port: 3101,
   //   },
   // },
 });
