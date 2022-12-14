@@ -34,8 +34,6 @@ class PrintcartDesignerShopify {
       ? import.meta.env.VITE_CUSTOMIZER_URL
       : "https://customizer.printcart.com";
 
-    this.#createDesignBtn();
-
     this.#getPrintcartProduct().then((res) => {
       this.productId = res.data.id;
 
@@ -47,17 +45,9 @@ class PrintcartDesignerShopify {
         },
       });
 
+      this.#createDesignBtn();
+
       this.#registerDesignerEvents();
-
-      const btn = document.querySelector("button#printcart-designer_btn");
-
-      if (btn && btn instanceof HTMLButtonElement) {
-        btn.disabled = false;
-
-        btn.onclick = () => {
-          this.#designerInstance.render();
-        };
-      }
     });
   }
 
@@ -256,7 +246,11 @@ class PrintcartDesignerShopify {
     button.innerHTML = this.options?.designBtnText
       ? this.options.designBtnText
       : "Start Design";
-    button.disabled = true;
+    // button.disabled = true;
+
+    button.onclick = () => {
+      this.#designerInstance.render();
+    };
 
     wrap.appendChild(button);
 
