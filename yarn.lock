@@ -9,6 +9,13 @@
   dependencies:
     events "^3.3.0"
 
+"@printcart/uploader-sdk@^1.0.8":
+  version "1.0.8"
+  resolved "https://registry.yarnpkg.com/@printcart/uploader-sdk/-/uploader-sdk-1.0.8.tgz#9e3ab169789d5464ee41d49ce4b99ac4c804868f"
+  integrity sha512-zenF8AEkQsihAkXGa+QxI6+bCAe3FWnEseKVDmSDt6pRImOuWr5q/NngCZc/3nXhGLY2j5IncTs835j04rsk7A==
+  dependencies:
+    events "^3.3.0"
+
 esbuild-android-64@0.14.51:
   version "0.14.51"
   resolved "https://registry.yarnpkg.com/esbuild-android-64/-/esbuild-android-64-0.14.51.tgz#414a087cb0de8db1e347ecca6c8320513de433db"
@@ -157,6 +164,11 @@ has@^1.0.3:
   dependencies:
     function-bind "^1.1.1"
 
+htm@^3.1.1:
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/htm/-/htm-3.1.1.tgz#49266582be0dc66ed2235d5ea892307cc0c24b78"
+  integrity sha512-983Vyg8NwUE7JkZ6NmOqpCZ+sh1bKv2iYTlUkzlWmA5JD2acKoxd4KVxbMmxX/85mtfdnDmTFoNKcg5DGAvxNQ==
+
 is-core-module@^2.9.0:
   version "2.9.0"
   resolved "https://registry.yarnpkg.com/is-core-module/-/is-core-module-2.9.0.tgz#e1c34429cd51c6dd9e09e0799e396e27b19a9c69"
@@ -213,6 +225,11 @@ supports-preserve-symlinks-flag@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/supports-preserve-symlinks-flag/-/supports-preserve-symlinks-flag-1.0.0.tgz#6eda4bd344a3c94aea376d4cc31bc77311039e09"
   integrity sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==
+
+vhtml@^2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/vhtml/-/vhtml-2.2.0.tgz#369e6823ed6c32cbb9f6e33395bae7c65faa014c"
+  integrity sha512-TPXrXrxBOslRUVnlVkiAqhoXneiertIg86bdvzionrUYhEuiROvyPZNiiP6GIIJ2Q7oPNVyEtIx8gMAZZE9lCQ==
 
 vite@^2.9.9:
   version "2.9.14"
