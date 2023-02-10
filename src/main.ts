@@ -9,6 +9,10 @@ interface IOptions {
   editBtnText?: string;
   onCreateSuccess?: (data: any) => void;
   onEditSuccess?: (data: any) => void;
+  showRuler: boolean;
+  showGrid: boolean;
+  showBleedLine: boolean;
+  showDimensions: boolean;
 }
 
 class PrintcartDesignerShopify {
