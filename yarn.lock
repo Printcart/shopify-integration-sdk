@@ -47,10 +47,10 @@
   "resolved" "https://registry.npmjs.org/@open-draft/until/-/until-1.0.3.tgz"
   "version" "1.0.3"
 
-"@printcart/design-tool-sdk@^1.5.0":
-  "integrity" "sha512-JM/8UTk0uDTBW3ADnmrQASo+T+m2wHVIc/iOZU4qfX7s6bBXxRa12jda/zqMuem+HFIiq+p+fYh5/wn7ZH6rYQ=="
-  "resolved" "https://registry.npmjs.org/@printcart/design-tool-sdk/-/design-tool-sdk-1.5.0.tgz"
-  "version" "1.5.0"
+"@printcart/design-tool-sdk@^1.6.0":
+  "integrity" "sha512-iideknvSz9C88aJYCi32KgiN2lQVbbcBOALTWcEyN0OPouBqIbqGkyxLnnHfdItbsrGBB6oFJsyx84SFbQ5l3g=="
+  "resolved" "https://registry.npmjs.org/@printcart/design-tool-sdk/-/design-tool-sdk-1.6.0.tgz"
+  "version" "1.6.0"
   dependencies:
     "events" "^3.3.0"
 

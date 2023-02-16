@@ -10,15 +10,16 @@ interface IOptions {
   designBtnText?: string;
   editBtnText?: string;
   removeUploaderBtnText?: string;
-  onCreateSuccess?: (data: [Design] | [DesignData], ctx: any) => void;
-  onEditSuccess?: (data: Design) => void;
+  onUploadSuccess?: (data: [DataWrap] | [Data], ctx: any) => void;
+  onDesignCreateSuccess?: (data: [DataWrap] | [Data], ctx: any) => void;
+  onDesignEditSuccess?: (data: Data, ctx: any) => void;
 }
 
-type Design = {
-  data: DesignData;
+type DataWrap = {
+  data: Data;
 };
 
-type DesignData = {
+type Data = {
   id: string;
   design_image: {
     url: string | null;
@@ -269,7 +270,7 @@ class PrintcartDesignerShopify {
     document.head.appendChild(link);
   }
 
-  #handleUploadSuccess(data: [Design]) {
+  #handleUploadSuccess(data: [DataWrap]) {
     const ids = data.map((design) => design.data.id);
 
     let input = <HTMLInputElement>(
@@ -339,12 +340,12 @@ class PrintcartDesignerShopify {
     wrap?.appendChild(heading);
     wrap?.appendChild(previewWrap);
 
-    const callback = this.options?.onCreateSuccess;
+    const callback = this.options?.onUploadSuccess;
 
     if (callback) callback(data, this.#uploaderInstance);
   }
 
-  #handleDesignSuccess(data: [DesignData]) {
+  #handleDesignSuccess(data: [Data]) {
     const self = this;
     const ids = data.map((design) => design.id);
 
@@ -413,16 +414,15 @@ class PrintcartDesignerShopify {
 
     wrap?.appendChild(previewWrap);
 
-    const callback = this.options?.onCreateSuccess;
+    const callback = this.options?.onDesignCreateSuccess;
 
     if (callback) callback(data, this.#designerInstance);
   }
 
   #registerUploaderEvents() {
     if (this.#uploaderInstance) {
-      this.#uploaderInstance.on("upload-success", (data: [Design]) => {
+      this.#uploaderInstance.on("upload-success", (data: [DataWrap]) => {
         this.#handleUploadSuccess(data);
-
         this.#uploaderInstance.close();
       });
     }
@@ -430,27 +430,29 @@ class PrintcartDesignerShopify {
 
   #registerDesignerEvents() {
     if (this.#designerInstance) {
-      this.#designerInstance.on("upload-success", (data: [DesignData]) => {
-        this.#designerInstance.close();
+      this.#designerInstance.on("upload-success", (data: [Data]) => {
         this.#handleDesignSuccess(data);
+        this.#designerInstance.close();
       });
 
-      this.#designerInstance.on("edit-success", (data: Design) => {
-        if (!data.data.design_image.url) return;
+      this.#designerInstance.on("edit-success", (data: Data) => {
+        if (!data.design_image.url) return;
 
         const img = document.querySelector(
-          `[data-printcart-design-id="${data.data.id}"] img`
+          `[data-pc-design-id="${data.id}"] img`
         );
 
         if (!img || !(img instanceof HTMLImageElement)) {
           throw new Error("Can't find image element");
         }
 
-        img.src = data.data.design_image.url;
+        img.src = data.design_image.url;
 
-        const callback = this.options?.onEditSuccess;
+        const callback = this.options?.onDesignEditSuccess;
 
-        if (callback) callback(data);
+        this.#designerInstance.close();
+
+        if (callback) callback(data, this.#designerInstance);
       });
     }
   }
