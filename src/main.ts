@@ -147,7 +147,7 @@ class PrintcartDesignerShopify {
 
       const callback = this.options?.onEditSuccess;
 
-      if (callback) callback(data);
+      if (callback) callback(data, this.#designerInstance);
     });
   }
 
