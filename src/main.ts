@@ -7,8 +7,8 @@ interface IOptions {
   buttonId?: string;
   designBtnText?: string;
   editBtnText?: string;
-  onCreateSuccess?: (data: any) => void;
-  onEditSuccess?: (data: any) => void;
+  onCreateSuccess?: (data: any, ctx: any) => void;
+  onEditSuccess?: (data: any, ctx: any) => void;
 }
 
 class PrintcartDesignerShopify {
@@ -55,8 +55,6 @@ class PrintcartDesignerShopify {
     const self = this;
 
     this.#designerInstance.on("upload-success", (data: any) => {
-      console.log(data);
-
       // Add hidden input for cart line item
       const ids = data.map((design: any) => design.id);
 
@@ -131,7 +129,9 @@ class PrintcartDesignerShopify {
 
       const callback = this.options?.onCreateSuccess;
 
-      if (callback) callback(data);
+      if (callback) callback(data, this.#designerInstance);
+
+      this.#designerInstance.close();
     });
 
     this.#designerInstance.on("edit-success", (data: any) => {
@@ -148,6 +148,8 @@ class PrintcartDesignerShopify {
       const callback = this.options?.onEditSuccess;
 
       if (callback) callback(data, this.#designerInstance);
+
+      this.#designerInstance.close();
     });
   }
 
