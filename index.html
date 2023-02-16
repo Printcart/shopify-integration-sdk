@@ -10,6 +10,13 @@
     <div id="app">
       <form action="/cart/add"></form>
     </div>
+    <script>
+      window.PrintcartDesignerShopifyOptions = {
+        onCreateSuccess: (data, ctx) => {
+          console.log(ctx);
+        },
+      };
+    </script>
     <script
       type="module"
       src="./src/main.ts?shopT=dbbf93ce202e191178acee47c4046bb6fb8c8634f27c3f5e9ce19a38695483b2"

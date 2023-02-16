@@ -10,7 +10,7 @@ interface IOptions {
   designBtnText?: string;
   editBtnText?: string;
   removeUploaderBtnText?: string;
-  onCreateSuccess?: (data: [Design] | [DesignData]) => void;
+  onCreateSuccess?: (data: [Design] | [DesignData], ctx: any) => void;
   onEditSuccess?: (data: Design) => void;
 }
 
@@ -92,7 +92,7 @@ class PrintcartDesignerShopify {
         this.#uploaderInstance = new PrintcartUploader({
           token: this.token,
           productId: this.productId,
-          uploaderUrl: "http://localhost:5174/",
+          uploaderUrl: "http://localhost:5173/",
         });
 
         this.#registerUploaderEvents();
@@ -341,7 +341,7 @@ class PrintcartDesignerShopify {
 
     const callback = this.options?.onCreateSuccess;
 
-    if (callback) callback(data);
+    if (callback) callback(data, this.#uploaderInstance);
   }
 
   #handleDesignSuccess(data: [DesignData]) {
@@ -415,7 +415,7 @@ class PrintcartDesignerShopify {
 
     const callback = this.options?.onCreateSuccess;
 
-    if (callback) callback(data);
+    if (callback) callback(data, this.#designerInstance);
   }
 
   #registerUploaderEvents() {
