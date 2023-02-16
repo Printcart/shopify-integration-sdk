@@ -44,6 +44,12 @@
   transition: all 0.2s;
 }
 
+#printcart-select_wrap * {
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
 #printcart-select_container {
   display: flex;
   width: 100%;
@@ -55,8 +61,8 @@
 }
 
 #printcart-select_header {
-  font-size: 48px;
-  margin-bottom: 48px;
+  font-size: 40px;
+  margin-bottom: 40px;
 }
 
 .printcart-select_btn_wrap {
@@ -173,12 +179,74 @@
   height: 2em;
   padding: 0;
   position: absolute;
-  right: 32px;
+  left: 32px;
   top: 32px;
   width: 2em;
+  cursor: pointer;
 }
 
 #printcart-select_close-btn:hover [data-modal-x] {
   transform: scale(1.2) rotate(45deg);
   transition: transform 0.2s ease-in-out;
+}
+
+.printcart-button {
+  border: none;
+  margin: 0;
+  padding: 0;
+  width: auto;
+  overflow: visible;
+  color: #fff;
+  line-height: normal;
+  -webkit-font-smoothing: inherit;
+  -moz-osx-font-smoothing: inherit;
+  -webkit-appearance: none;
+  padding: 8px 12px;
+  cursor: pointer;
+  margin-bottom: 8px;
+  min-width: 74px;;
+}
+
+.printcart-primary-button {
+  background-color: #2f7bf8;
+}
+
+.printcart-danger-button {
+  background-color: #dc2626;
+}
+
+.printcart-preview-wrap {
+  display: flex;
+}
+
+.printcart-preview {
+  max-width: 160px;
+  position: relative;
+  margin-right: 8px;
+  margin-right: 8px
+}
+
+.printcart-uploader-image {
+  max-width: 100%;
+}
+
+.printcart-preview-overlay {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 60%);
+  top: 0;
+  opacity: 0;
+  transition: all 0.15s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.printcart-preview:hover .printcart-preview-overlay {
+  opacity: 100%;
+}
+
+.printcart-remove-button {
 }

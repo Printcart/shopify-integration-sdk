@@ -9,9 +9,21 @@ interface IOptions {
   buttonId?: string;
   designBtnText?: string;
   editBtnText?: string;
-  onCreateSuccess?: (data: any) => void;
-  onEditSuccess?: (data: any) => void;
+  removeUploaderBtnText?: string;
+  onCreateSuccess?: (data: [Design] | [DesignData]) => void;
+  onEditSuccess?: (data: Design) => void;
 }
+
+type Design = {
+  data: DesignData;
+};
+
+type DesignData = {
+  id: string;
+  design_image: {
+    url: string | null;
+  };
+};
 
 class PrintcartDesignerShopify {
   #apiUrl: string;
@@ -21,6 +33,7 @@ class PrintcartDesignerShopify {
   #designerUrl: string;
   #designerInstance: any;
   #uploaderInstance: any;
+  #productForm: HTMLFormElement | null;
 
   constructor() {
     this.token = this.#getUnauthToken();
@@ -36,6 +49,14 @@ class PrintcartDesignerShopify {
     this.#designerUrl = import.meta.env.VITE_CUSTOMIZER_URL
       ? import.meta.env.VITE_CUSTOMIZER_URL
       : "https://customizer.printcart.com";
+
+    this.#productForm = document.querySelector('form[action="/cart/add"]');
+
+    if (!this.#productForm) {
+      throw new Error(
+        "This script can only be used inside a Shopify Product Page."
+      );
+    }
 
     this.#addStyle();
     this.#createBtn();
@@ -70,11 +91,11 @@ class PrintcartDesignerShopify {
       if (isUploadEnabled) {
         this.#uploaderInstance = new PrintcartUploader({
           token: this.token,
-          sideId: "732b92ee-d9c6-4f45-8d62-a83f62566aa7",
-          uploaderUrl: "http://localhost:3003/",
+          productId: this.productId,
+          uploaderUrl: "http://localhost:5174/",
         });
 
-        this.#registerDesignerEvents();
+        this.#registerUploaderEvents();
 
         if (btn && btn instanceof HTMLButtonElement) {
           btn.disabled = false;
@@ -118,7 +139,7 @@ class PrintcartDesignerShopify {
 
     if (modal) {
       modal.style.display = "none";
-      document.body.style.overflow = "scroll";
+      // document.body.style.overflow = "scroll";
     }
   }
 
@@ -248,116 +269,189 @@ class PrintcartDesignerShopify {
     document.head.appendChild(link);
   }
 
-  #registerDesignerEvents() {
+  #handleUploadSuccess(data: [Design]) {
+    const ids = data.map((design) => design.data.id);
+
+    let input = <HTMLInputElement>(
+      document.querySelector('input[name="properties[_pcDesignIds]"]')
+    );
+
+    if (input) {
+      input.value += `,${ids.join()}`;
+    } else {
+      input = <HTMLInputElement>document.createElement("input");
+      input.type = "hidden";
+      input.name = "properties[_pcDesignIds]";
+      input.className = "printcart-designer_input";
+      input.value = ids.join();
+
+      this.#productForm?.appendChild(input);
+    }
+
+    // Show design image list on product page
+    const previewWrap =
+      document.querySelector(".printcart-preview-wrap") ||
+      document.createElement("div");
+
+    previewWrap.className = "printcart-preview-wrap";
+
+    data.forEach((design) => {
+      if (!design.data.design_image.url) return;
+
+      const preview = document.createElement("div");
+      preview.className = "printcart-preview";
+      preview.setAttribute("data-pc-design-id", design.data.id);
+
+      const btn = document.createElement("button");
+      btn.className = "printcart-button printcart-danger-button";
+      btn.innerHTML = this.options?.removeUploaderBtnText
+        ? this.options.removeUploaderBtnText
+        : "Remove";
+      btn.onclick = () => {
+        const newIds = input.value
+          .split(",")
+          .filter((id) => id !== design.data.id);
+
+        input.value = newIds.join();
+
+        preview.remove();
+      };
+
+      const image = document.createElement("img");
+      image.src = design.data.design_image.url;
+      image.className = "printcart-uploader-image";
+
+      const overlay = document.createElement("div");
+      overlay.className = "printcart-preview-overlay";
+
+      overlay.appendChild(btn);
+      preview.appendChild(overlay);
+      preview.appendChild(image);
+      previewWrap.appendChild(preview);
+    });
+
+    const wrap = document.querySelector("div#printcart-designer_wrap");
+
+    const heading = document.createElement("h5");
+    heading.className = "princart-preview-heading";
+    heading.innerHTML = "Your artworks";
+
+    wrap?.appendChild(heading);
+    wrap?.appendChild(previewWrap);
+
+    const callback = this.options?.onCreateSuccess;
+
+    if (callback) callback(data);
+  }
+
+  #handleDesignSuccess(data: [DesignData]) {
     const self = this;
+    const ids = data.map((design) => design.id);
 
+    let input = <HTMLInputElement>(
+      document.querySelector('input[name="properties[_pcDesignIds]"]')
+    );
+
+    if (input) {
+      input.value += `,${ids.join()}`;
+    } else {
+      input = <HTMLInputElement>document.createElement("input");
+      input.type = "hidden";
+      input.name = "properties[_pcDesignIds]";
+      input.className = "printcart-designer_input";
+      input.value = ids.join();
+
+      this.#productForm?.appendChild(input);
+    }
+
+    const previewWrap =
+      document.querySelector(".printcart-preview-wrap") ||
+      document.createElement("div");
+
+    previewWrap.className = "printcart-preview-wrap";
+
+    data.forEach((design) => {
+      if (!design.design_image.url) return;
+
+      const preview = document.createElement("div");
+      preview.className = "printcart-preview";
+      preview.setAttribute("data-pc-design-id", design.id);
+
+      const editBtn = document.createElement("button");
+      editBtn.className = "printcart-button printcart-primary-button";
+      editBtn.innerHTML = "Edit";
+      editBtn.onclick = () => {
+        self.#designerInstance.editDesign(design.id);
+      };
+
+      const removeBtn = document.createElement("button");
+      removeBtn.className = "printcart-button printcart-danger-button";
+      removeBtn.innerHTML = "Remove";
+      removeBtn.onclick = () => {
+        const newIds = input.value.split(",").filter((id) => id !== design.id);
+
+        input.value = newIds.join();
+
+        preview.remove();
+      };
+
+      const image = document.createElement("img");
+      image.src = design.design_image.url;
+      image.className = "printcart-uploader-image";
+
+      const overlay = document.createElement("div");
+      overlay.className = "printcart-preview-overlay";
+
+      overlay.appendChild(editBtn);
+      overlay.appendChild(removeBtn);
+      preview.appendChild(overlay);
+      preview.appendChild(image);
+      previewWrap.appendChild(preview);
+    });
+
+    const wrap = document.querySelector("div#printcart-designer_wrap");
+
+    wrap?.appendChild(previewWrap);
+
+    const callback = this.options?.onCreateSuccess;
+
+    if (callback) callback(data);
+  }
+
+  #registerUploaderEvents() {
+    if (this.#uploaderInstance) {
+      this.#uploaderInstance.on("upload-success", (data: [Design]) => {
+        this.#handleUploadSuccess(data);
+
+        this.#uploaderInstance.close();
+      });
+    }
+  }
+
+  #registerDesignerEvents() {
     if (this.#designerInstance) {
-      this.#designerInstance.on("upload-success", (data: any) => {
-        console.log(data);
-
-        // Add hidden input for cart line item
-        const ids = data.map((design: any) => design.id);
-
-        const input = document.createElement("input");
-        input.type = "hidden";
-        input.name = "properties[_pcDesignIds]";
-        input.className = "printcart-designer_input";
-        input.value = ids.join();
-
-        const productForms = document.querySelectorAll(
-          'form[action="/cart/add"]'
-        );
-        const form = productForms[productForms.length - 1];
-
-        if (!form || !form.parentNode) {
-          throw new Error("Can't find form element");
-        }
-
-        form.appendChild(input);
-
-        // Show design image list on product page
-        const imageWrap = document.createElement("div");
-
-        imageWrap.id = "printcart-designer_image-wrap";
-
-        const iframe = document.querySelector("iframe#pc-designer-iframe");
-
-        if (!iframe || !(iframe instanceof HTMLIFrameElement)) {
-          throw new Error("Can't find Iframe Element");
-        }
-
-        data.forEach((design: any) => {
-          const button = document.createElement("button");
-          button.className = "printcart-designer_edit-button";
-          button.setAttribute("data-printcart-design-id", design.id);
-
-          button.onclick = () => {
-            self.#designerInstance.editDesign(design.id);
-          };
-
-          const image = document.createElement("img");
-
-          image.src = design.design_image.url;
-          image.className = "printcart-designer_image";
-
-          const span = document.createElement("span");
-          //TODO: i18n
-          span.innerHTML = this.options?.editBtnText
-            ? this.options.editBtnText
-            : "Edit";
-          span.className = "printcart-designer_overlay";
-
-          button.onmouseover = function () {
-            //@ts-ignore
-            this.style.background = "rgb(0 0 0 / 80%)";
-            span.style.display = "block";
-          };
-          button.onmouseout = function () {
-            //@ts-ignore
-            this.style.background = "transparent";
-            span.style.display = "none";
-          };
-
-          button.appendChild(image);
-          button.appendChild(span);
-          imageWrap.appendChild(button);
-        });
-
-        const wrap = document.querySelector("div#printcart-designer_wrap");
-
-        wrap?.appendChild(imageWrap);
-
-        const callback = this.options?.onCreateSuccess;
-
-        if (callback) callback(data);
+      this.#designerInstance.on("upload-success", (data: [DesignData]) => {
+        this.#designerInstance.close();
+        this.#handleDesignSuccess(data);
       });
 
-      this.#designerInstance.on("edit-success", (data: any) => {
-        console.log(data);
+      this.#designerInstance.on("edit-success", (data: Design) => {
+        if (!data.data.design_image.url) return;
 
         const img = document.querySelector(
-          `[data-printcart-design-id="${data.id}"] img`
+          `[data-printcart-design-id="${data.data.id}"] img`
         );
 
         if (!img || !(img instanceof HTMLImageElement)) {
           throw new Error("Can't find image element");
         }
 
-        img.src = data.design_image.url;
+        img.src = data.data.design_image.url;
 
         const callback = this.options?.onEditSuccess;
 
         if (callback) callback(data);
       });
-    }
-
-    if (this.#uploaderInstance) {
-      this.#uploaderInstance.on("upload-success", (data: unknown) =>
-        console.log('te')
-      );
-      this.#uploaderInstance.on("upload-error", (err: unknown) =>
-        console.log(err)
-      );
     }
   }
 
@@ -441,9 +535,11 @@ class PrintcartDesignerShopify {
   }
 
   #createBtn() {
-    const cartForm = document.querySelector('form[action="/cart/add"]');
+    const cartForm = this.#productForm;
 
-    if (!cartForm || !cartForm.parentNode) {
+    if (!cartForm?.parentNode) {
+      console.log("Can not find cart form");
+
       return;
     }
 
@@ -460,8 +556,19 @@ class PrintcartDesignerShopify {
 
     wrap.appendChild(button);
 
-    cartForm.parentNode.insertBefore(wrap, cartForm);
+    cartForm?.parentNode.insertBefore(wrap, cartForm);
   }
 }
 
-new PrintcartDesignerShopify();
+const prepare = async () => {
+  if (import.meta.env.DEV) {
+    // const { worker } = require("./mocks/browser");
+    //@ts-ignore
+    const { worker } = await import("../mocks/browser");
+    worker.start();
+  }
+};
+
+prepare().then(() => new PrintcartDesignerShopify());
+
+// new PrintcartDesignerShopify();
