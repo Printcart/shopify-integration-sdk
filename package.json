@@ -48,7 +48,7 @@
     "vite": "^2.9.9"
   },
   "dependencies": {
-    "@printcart/design-tool-sdk": "^1.4.0",
+    "@printcart/design-tool-sdk": "^1.5.0",
     "@printcart/uploader-sdk": "^1.0.8"
   },
   "msw": {
