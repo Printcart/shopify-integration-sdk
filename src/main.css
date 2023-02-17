@@ -1,34 +1,16 @@
-#printcart-designer_image-wrap {
-  margin-top: 16px;
-  margin-bottom: 16px;
+:root {
+  --pc-white-color: #f9fafb;
+  --pc-cyan-color: #06b6d4;
+  --pc-amber-color: #fde68a;
+  --pc-gray-medium-color: #4b5563;
+  --pc-green-color: #22c55e;
+  --pc-primary-color: #2f7bf8;
+  --pc-red-color: #dc2626;
+  --pc-border-color: #e5e7eb;
+  --pc-transition-timing: 0.2s;
 }
 
-.printcart-designer_edit-button {
-  display: inline-flex;
-  position: relative;
-  margin-right: 8px;
-  border-radius: 4px;
-  padding: 0;
-  border: 1px solid #ccc;
-  transition: 0.2s;
-}
-
-.printcart-designer_image {
-  max-width: 80px;
-  height: auto;
-}
-
-.printcart-designer_overlay {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: #fff;
-  cursor: pointer;
-  display: none;
-}
-
-#printcart-select_wrap {
+#pc-select_wrap {
   position: relative;
   width: 100vw;
   height: 100vh;
@@ -40,38 +22,38 @@
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  background: rgba(255, 255, 255, 96%);
-  transition: all 0.2s;
+  background: rgba(255, 255, 255, 92%);
+  transition: all var(--pc-transition-timing);
 }
 
-#printcart-select_wrap * {
+#pc-select_wrap * {
   font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
-#printcart-select_container {
+#pc-select_container {
   display: flex;
   width: 100%;
   justify-content: center;
 }
 
-#printcart-select_container > .printcart-select_btn:first-child {
+#pc-select_container > .pc-select_btn:first-child {
   margin-right: 32px;
 }
 
-#printcart-select_header {
+#pc-select_header {
   font-size: 40px;
   margin-bottom: 40px;
 }
 
-.printcart-select_btn_wrap {
+.pc-select_btn_wrap {
   display: flex;
   align-items: center;
   height: 100%;
 }
 
-.printcart-select_btn {
+.pc-select_btn {
   border: 0;
   padding: 0;
   width: 33.33333%;
@@ -82,12 +64,12 @@
   cursor: pointer;
 }
 
-.printcart-select_btn:hover {
+.pc-select_btn:hover {
   filter: drop-shadow(0 10px 8px rgb(0 0 0 / 0.04))
     drop-shadow(0 4px 3px rgb(0 0 0 / 0.1));
 }
 
-.printcart-select_btn_img {
+.pc-select_btn_img {
   margin-right: 20px;
   width: 33.33333%;
   height: 100%;
@@ -98,43 +80,43 @@
   padding-right: 32px;
 }
 
-.printcart-select_btn_content {
+.pc-select_btn_content {
   width: 66.66666%;
   display: flex;
   flex-direction: column;
   align-items: start;
 }
 
-#printcart-select_btn_upload .printcart-select_btn_img {
-  background-color: #06b6d4;
+#pc-select_btn_upload .pc-select_btn_img {
+  background-color: var(--pc-cyan-color);
 }
 
-#printcart-select_btn_design .printcart-select_btn_img {
-  background-color: #fde68a;
+#pc-select_btn_design .pc-select_btn_img {
+  background-color: var(--pc-amber-color);
 }
 
-.printcart-select_btn_content h2 {
+.pc-select_btn_content h2 {
   margin-top: 0;
   margin-bottom: 16px;
 }
 
-.printcart-select_btn_content ul {
+.pc-select_btn_content ul {
   padding-left: 12px;
   margin: 0;
   text-align: start;
   list-style-type: none;
 }
 
-.printcart-select_btn_content li {
+.pc-select_btn_content li {
   margin-bottom: 6px;
-  color: #4b5563;
+  color: var(--pc-gray-medium-color);
   font-size: 16px;
   padding-left: 4px;
 }
 
-.printcart-select_btn_content li::marker {
+.pc-select_btn_content li::marker {
   content: "\2713";
-  color: #22c55e;
+  color: var(--pc-green-color);
 }
 
 .visually-hidden:not(:focus):not(:active) {
@@ -173,7 +155,7 @@
   width: 100%;
 }
 
-#printcart-select_close-btn {
+#pc-select_close-btn {
   background: none;
   border: none;
   height: 2em;
@@ -185,18 +167,18 @@
   cursor: pointer;
 }
 
-#printcart-select_close-btn:hover [data-modal-x] {
+#pc-select_close-btn:hover [data-modal-x] {
   transform: scale(1.2) rotate(45deg);
   transition: transform 0.2s ease-in-out;
 }
 
-.printcart-button {
+.pc-btn {
   border: none;
   margin: 0;
   padding: 0;
   width: auto;
   overflow: visible;
-  color: #fff;
+  color: var(--pc-white-color);
   line-height: normal;
   -webkit-font-smoothing: inherit;
   -moz-osx-font-smoothing: inherit;
@@ -204,33 +186,36 @@
   padding: 8px 12px;
   cursor: pointer;
   margin-bottom: 8px;
-  min-width: 74px;;
+  min-width: 74px;
 }
 
-.printcart-primary-button {
-  background-color: #2f7bf8;
+.pc-primary-btn {
+  background-color: var(--pc-primary-color);
 }
 
-.printcart-danger-button {
-  background-color: #dc2626;
+.pc-danger-btn {
+  background-color: var(--pc-red-color);
 }
 
-.printcart-preview-wrap {
+.pc-preview-wrap {
   display: flex;
+  flex-wrap: wrap;
 }
 
-.printcart-preview {
+.pc-preview {
   max-width: 160px;
   position: relative;
   margin-right: 8px;
-  margin-right: 8px
+  border: 1px solid var(--pc-border-color);
+  display: flex;
+  align-items: center;
 }
 
-.printcart-uploader-image {
+.pc-uploader-image {
   max-width: 100%;
 }
 
-.printcart-preview-overlay {
+.pc-preview-overlay {
   position: absolute;
   width: 100%;
   height: 100%;
@@ -244,9 +229,6 @@
   flex-direction: column;
 }
 
-.printcart-preview:hover .printcart-preview-overlay {
+.pc-preview:hover .pc-preview-overlay {
   opacity: 100%;
-}
-
-.printcart-remove-button {
 }

@@ -68,7 +68,7 @@ class PrintcartDesignerShopify {
     this.#getPrintcartProduct().then((res) => {
       this.productId = res.data.id;
 
-      const btn = document.querySelector("button#printcart-btn");
+      const btn = document.querySelector("button#pc-btn");
 
       const isDesignEnabled = res.data.enable_design;
       const isUploadEnabled = res.data.enable_upload;
@@ -124,19 +124,19 @@ class PrintcartDesignerShopify {
   }
 
   #openModal() {
-    const modal = document.getElementById("printcart-select_wrap");
+    const modal = document.getElementById("pc-select_wrap");
 
     if (modal) {
       modal.style.display = "flex";
       document.body.style.overflow = "hidden";
     }
 
-    const closeBtn = modal?.querySelector("#printcart-select_close-btn");
+    const closeBtn = modal?.querySelector("#pc-select_close-btn");
     if (closeBtn && closeBtn instanceof HTMLButtonElement) closeBtn.focus();
   }
 
   #closeModal() {
-    const modal = document.getElementById("printcart-select_wrap");
+    const modal = document.getElementById("pc-select_wrap");
 
     if (modal) {
       modal.style.display = "none";
@@ -145,7 +145,7 @@ class PrintcartDesignerShopify {
   }
 
   #registerCloseModal() {
-    const closeModalBtn = document.getElementById("printcart-select_close-btn");
+    const closeModalBtn = document.getElementById("pc-select_close-btn");
 
     const handleClose = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -162,15 +162,15 @@ class PrintcartDesignerShopify {
     const designImgSrc = "https://files.printcart.com/common/design.svg";
 
     const inner = `
-      <button aria-label="Close" id="printcart-select_close-btn"><span data-modal-x></span></button>
-      <div id="printcart-select_header">Choose a way to design this product</div>
-      <div id="printcart-select_container">
-        <button class="printcart-select_btn" id="printcart-select_btn_upload">
-          <div aria-hidden="true" class="printcart-select_btn_wrap">
-            <div class="printcart-select_btn_img">
+      <button aria-label="Close" id="pc-select_close-btn"><span data-modal-x></span></button>
+      <div id="pc-select_header">Choose a way to design this product</div>
+      <div id="pc-select_container">
+        <button class="pc-select_btn" id="pc-select_btn_upload">
+          <div aria-hidden="true" class="pc-select_btn_wrap">
+            <div class="pc-select_btn_img">
               <img src="${uploadImgSrc}" alt="Printcart Uploader" />
             </div>
-            <div class="printcart-select_btn_content">
+            <div class="pc-select_btn_content">
               <h2>Upload a full design</h2>
               <ul>
                 <li>Have a complete design</li>
@@ -180,12 +180,12 @@ class PrintcartDesignerShopify {
           </div>
           <div class="visually-hidden">Upload Design file</div>
         </button>
-        <button class="printcart-select_btn" id="printcart-select_btn_design">
-          <div aria-hidden="true" class="printcart-select_btn_wrap">
-            <div class="printcart-select_btn_img">
+        <button class="pc-select_btn" id="pc-select_btn_design">
+          <div aria-hidden="true" class="pc-select_btn_wrap">
+            <div class="pc-select_btn_img">
               <img src="${designImgSrc}" alt="Printcart Designer" />
             </div>
-            <div class="printcart-select_btn_content">
+            <div class="pc-select_btn_content">
               <h2>Design here online</h2>
               <ul>
                 <li>Already have your concept</li>
@@ -199,7 +199,7 @@ class PrintcartDesignerShopify {
     `;
 
     const wrap = document.createElement("div");
-    wrap.id = "printcart-select_wrap";
+    wrap.id = "pc-select_wrap";
     wrap.setAttribute("role", "dialog");
     wrap.setAttribute("aria-modal", "true");
     wrap.setAttribute("tabIndex", "-1");
@@ -223,15 +223,15 @@ class PrintcartDesignerShopify {
       }
     };
 
-    const uploadBtn = document.getElementById("printcart-select_btn_upload");
-    const designBtn = document.getElementById("printcart-select_btn_design");
+    const uploadBtn = document.getElementById("pc-select_btn_upload");
+    const designBtn = document.getElementById("pc-select_btn_design");
 
     if (uploadBtn) uploadBtn?.addEventListener("click", upload);
     if (designBtn) designBtn?.addEventListener("click", design);
   }
 
   #modalTrap() {
-    const modal = document.getElementById("printcart-select_wrap");
+    const modal = document.getElementById("pc-select_wrap");
 
     const focusableEls = modal?.querySelectorAll("button");
 
@@ -283,7 +283,7 @@ class PrintcartDesignerShopify {
       input = <HTMLInputElement>document.createElement("input");
       input.type = "hidden";
       input.name = "properties[_pcDesignIds]";
-      input.className = "printcart-designer_input";
+      input.className = "pc-designer_input";
       input.value = ids.join();
 
       this.#productForm?.appendChild(input);
@@ -291,20 +291,20 @@ class PrintcartDesignerShopify {
 
     // Show design image list on product page
     const previewWrap =
-      document.querySelector(".printcart-preview-wrap") ||
+      document.querySelector(".pc-preview-wrap") ||
       document.createElement("div");
 
-    previewWrap.className = "printcart-preview-wrap";
+    previewWrap.className = "pc-preview-wrap";
 
     data.forEach((design) => {
       if (!design.data.design_image.url) return;
 
       const preview = document.createElement("div");
-      preview.className = "printcart-preview";
+      preview.className = "pc-preview";
       preview.setAttribute("data-pc-design-id", design.data.id);
 
       const btn = document.createElement("button");
-      btn.className = "printcart-button printcart-danger-button";
+      btn.className = "pc-btn pc-danger-btn";
       btn.innerHTML = this.options?.removeUploaderBtnText
         ? this.options.removeUploaderBtnText
         : "Remove";
@@ -320,10 +320,10 @@ class PrintcartDesignerShopify {
 
       const image = document.createElement("img");
       image.src = design.data.design_image.url;
-      image.className = "printcart-uploader-image";
+      image.className = "pc-uploader-image";
 
       const overlay = document.createElement("div");
-      overlay.className = "printcart-preview-overlay";
+      overlay.className = "pc-preview-overlay";
 
       overlay.appendChild(btn);
       preview.appendChild(overlay);
@@ -331,13 +331,16 @@ class PrintcartDesignerShopify {
       previewWrap.appendChild(preview);
     });
 
-    const wrap = document.querySelector("div#printcart-designer_wrap");
+    const wrap = document.querySelector("div#pc-designer_wrap");
 
-    const heading = document.createElement("h5");
-    heading.className = "princart-preview-heading";
-    heading.innerHTML = "Your artworks";
+    if (!document.querySelector(".princart-preview-heading")) {
+      const heading = document.createElement("h5");
+      heading.className = "princart-preview-heading";
+      heading.innerHTML = "Your artworks";
 
-    wrap?.appendChild(heading);
+      wrap?.appendChild(heading);
+    }
+
     wrap?.appendChild(previewWrap);
 
     const callback = this.options?.onUploadSuccess;
@@ -359,34 +362,34 @@ class PrintcartDesignerShopify {
       input = <HTMLInputElement>document.createElement("input");
       input.type = "hidden";
       input.name = "properties[_pcDesignIds]";
-      input.className = "printcart-designer_input";
+      input.className = "pc-designer_input";
       input.value = ids.join();
 
       this.#productForm?.appendChild(input);
     }
 
     const previewWrap =
-      document.querySelector(".printcart-preview-wrap") ||
+      document.querySelector(".pc-preview-wrap") ||
       document.createElement("div");
 
-    previewWrap.className = "printcart-preview-wrap";
+    previewWrap.className = "pc-preview-wrap";
 
     data.forEach((design) => {
       if (!design.design_image.url) return;
 
       const preview = document.createElement("div");
-      preview.className = "printcart-preview";
+      preview.className = "pc-preview";
       preview.setAttribute("data-pc-design-id", design.id);
 
       const editBtn = document.createElement("button");
-      editBtn.className = "printcart-button printcart-primary-button";
+      editBtn.className = "pc-btn pc-primary-btn";
       editBtn.innerHTML = "Edit";
       editBtn.onclick = () => {
         self.#designerInstance.editDesign(design.id);
       };
 
       const removeBtn = document.createElement("button");
-      removeBtn.className = "printcart-button printcart-danger-button";
+      removeBtn.className = "pc-btn pc-danger-btn";
       removeBtn.innerHTML = "Remove";
       removeBtn.onclick = () => {
         const newIds = input.value.split(",").filter((id) => id !== design.id);
@@ -398,10 +401,10 @@ class PrintcartDesignerShopify {
 
       const image = document.createElement("img");
       image.src = design.design_image.url;
-      image.className = "printcart-uploader-image";
+      image.className = "pc-uploader-image";
 
       const overlay = document.createElement("div");
-      overlay.className = "printcart-preview-overlay";
+      overlay.className = "pc-preview-overlay";
 
       overlay.appendChild(editBtn);
       overlay.appendChild(removeBtn);
@@ -410,7 +413,7 @@ class PrintcartDesignerShopify {
       previewWrap.appendChild(preview);
     });
 
-    const wrap = document.querySelector("div#printcart-designer_wrap");
+    const wrap = document.querySelector("div#pc-designer_wrap");
 
     wrap?.appendChild(previewWrap);
 
@@ -546,10 +549,10 @@ class PrintcartDesignerShopify {
     }
 
     const wrap = document.createElement("div");
-    wrap.id = "printcart-designer_wrap";
+    wrap.id = "pc-designer_wrap";
 
     const button = document.createElement("button");
-    button.id = "printcart-btn";
+    button.id = "pc-btn";
     button.className = "button";
     button.innerHTML = this.options?.designBtnText
       ? this.options.designBtnText
