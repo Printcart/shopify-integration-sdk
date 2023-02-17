@@ -4,7 +4,7 @@
   "files": [
     "dist"
   ],
-  "version": "1.0.7",
+  "version": "2.0.0",
   "scripts": {
     "dev": "vite --port 3102",
     "build": "vite build",
@@ -43,9 +43,15 @@
   },
   "homepage": "https://github.com/Printcart/shopify-integration-sdk#readme",
   "devDependencies": {
+    "@iodigital/vite-plugin-msw": "^0.3.0",
+    "msw": "^1.0.1",
     "vite": "^2.9.9"
   },
   "dependencies": {
-    "@printcart/design-tool-sdk": "^1.4.0"
+    "@printcart/design-tool-sdk": "^1.6.0",
+    "@printcart/uploader-sdk": "^1.2.0"
+  },
+  "msw": {
+    "workerDirectory": "public"
   }
 }

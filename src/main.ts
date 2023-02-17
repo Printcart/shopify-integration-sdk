@@ -1,5 +1,7 @@
 //@ts-ignore
 import PrintcartDesigner from "@printcart/design-tool-sdk";
+//@ts-ignore
+import PrintcartUploader from "@printcart/uploader-sdk";
 import "./main.css";
 
 // TODO: on error events
@@ -7,9 +9,22 @@ interface IOptions {
   buttonId?: string;
   designBtnText?: string;
   editBtnText?: string;
-  onCreateSuccess?: (data: any, ctx: any) => void;
-  onEditSuccess?: (data: any, ctx: any) => void;
+  removeUploaderBtnText?: string;
+  onUploadSuccess?: (data: [DataWrap] | [Data], ctx: any) => void;
+  onDesignCreateSuccess?: (data: [DataWrap] | [Data], ctx: any) => void;
+  onDesignEditSuccess?: (data: Data, ctx: any) => void;
 }
+
+type DataWrap = {
+  data: Data;
+};
+
+type Data = {
+  id: string;
+  design_image: {
+    url: string | null;
+  };
+};
 
 class PrintcartDesignerShopify {
   #apiUrl: string;
@@ -18,6 +33,8 @@ class PrintcartDesignerShopify {
   options?: IOptions;
   #designerUrl: string;
   #designerInstance: any;
+  #uploaderInstance: any;
+  #productForm: HTMLFormElement | null;
 
   constructor() {
     this.token = this.#getUnauthToken();
@@ -34,123 +51,413 @@ class PrintcartDesignerShopify {
       ? import.meta.env.VITE_CUSTOMIZER_URL
       : "https://customizer.printcart.com";
 
+    this.#productForm = document.querySelector('form[action="/cart/add"]');
+
+    if (!this.#productForm) {
+      throw new Error(
+        "This script can only be used inside a Shopify Product Page."
+      );
+    }
+
+    this.#addStyle();
+    this.#createBtn();
+    this.#openSelectModal();
+    this.#registerCloseModal();
+    this.#modalTrap();
+
     this.#getPrintcartProduct().then((res) => {
       this.productId = res.data.id;
 
-      this.#designerInstance = new PrintcartDesigner({
-        token: this.token,
-        productId: this.productId,
-        options: {
-          designerUrl: this.#designerUrl,
-        },
-      });
+      const btn = document.querySelector("button#pc-btn");
 
-      this.#createDesignBtn();
+      const isDesignEnabled = res.data.enable_design;
+      const isUploadEnabled = res.data.enable_upload;
 
-      this.#registerDesignerEvents();
+      if (isDesignEnabled) {
+        this.#designerInstance = new PrintcartDesigner({
+          token: this.token,
+          productId: this.productId,
+          options: {
+            designerUrl: this.#designerUrl,
+          },
+        });
+
+        this.#registerDesignerEvents();
+
+        if (btn && btn instanceof HTMLButtonElement) {
+          btn.disabled = false;
+        }
+      }
+
+      if (isUploadEnabled) {
+        this.#uploaderInstance = new PrintcartUploader({
+          token: this.token,
+          productId: this.productId,
+          uploaderUrl: "http://localhost:5173/",
+        });
+
+        this.#registerUploaderEvents();
+
+        if (btn && btn instanceof HTMLButtonElement) {
+          btn.disabled = false;
+        }
+      }
+
+      const handleClick = () => {
+        if (this.#designerInstance && !this.#uploaderInstance) {
+          this.#designerInstance.render();
+        }
+
+        if (!this.#designerInstance && this.#uploaderInstance) {
+          this.#uploaderInstance.open();
+        }
+
+        if (this.#designerInstance && this.#uploaderInstance) {
+          this.#openModal();
+        }
+      };
+
+      if (btn && btn instanceof HTMLButtonElement) {
+        btn.onclick = handleClick;
+      }
     });
   }
 
-  #registerDesignerEvents() {
-    const self = this;
+  #openModal() {
+    const modal = document.getElementById("pc-select_wrap");
 
-    this.#designerInstance.on("upload-success", (data: any) => {
-      // Add hidden input for cart line item
-      const ids = data.map((design: any) => design.id);
+    if (modal) {
+      modal.style.display = "flex";
+      document.body.style.overflow = "hidden";
+    }
 
-      const input = document.createElement("input");
+    const closeBtn = modal?.querySelector("#pc-select_close-btn");
+    if (closeBtn && closeBtn instanceof HTMLButtonElement) closeBtn.focus();
+  }
+
+  #closeModal() {
+    const modal = document.getElementById("pc-select_wrap");
+
+    if (modal) {
+      modal.style.display = "none";
+      // document.body.style.overflow = "scroll";
+    }
+  }
+
+  #registerCloseModal() {
+    const closeModalBtn = document.getElementById("pc-select_close-btn");
+
+    const handleClose = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        this.#closeModal();
+      }
+    };
+
+    window.addEventListener("keydown", handleClose);
+    closeModalBtn?.addEventListener("click", () => this.#closeModal());
+  }
+
+  #openSelectModal() {
+    const uploadImgSrc = "https://files.printcart.com/common/upload.svg";
+    const designImgSrc = "https://files.printcart.com/common/design.svg";
+
+    const inner = `
+      <button aria-label="Close" id="pc-select_close-btn"><span data-modal-x></span></button>
+      <div id="pc-select_header">Choose a way to design this product</div>
+      <div id="pc-select_container">
+        <button class="pc-select_btn" id="pc-select_btn_upload">
+          <div aria-hidden="true" class="pc-select_btn_wrap">
+            <div class="pc-select_btn_img">
+              <img src="${uploadImgSrc}" alt="Printcart Uploader" />
+            </div>
+            <div class="pc-select_btn_content">
+              <h2>Upload a full design</h2>
+              <ul>
+                <li>Have a complete design</li>
+                <li>Have your own designer</li>
+              </ul>
+            </div>
+          </div>
+          <div class="visually-hidden">Upload Design file</div>
+        </button>
+        <button class="pc-select_btn" id="pc-select_btn_design">
+          <div aria-hidden="true" class="pc-select_btn_wrap">
+            <div class="pc-select_btn_img">
+              <img src="${designImgSrc}" alt="Printcart Designer" />
+            </div>
+            <div class="pc-select_btn_content">
+              <h2>Design here online</h2>
+              <ul>
+                <li>Already have your concept</li>
+                <li>Customize every details</li>
+              </ul>
+            </div>
+          </div>
+          <div class="visually-hidden">Upload Design file</div>
+        </button>
+      </div>
+    `;
+
+    const wrap = document.createElement("div");
+    wrap.id = "pc-select_wrap";
+    wrap.setAttribute("role", "dialog");
+    wrap.setAttribute("aria-modal", "true");
+    wrap.setAttribute("tabIndex", "-1");
+    wrap.innerHTML = inner;
+
+    document.body.appendChild(wrap);
+
+    const design = () => {
+      if (this.#designerInstance) {
+        this.#closeModal();
+
+        this.#designerInstance.render();
+      }
+    };
+
+    const upload = () => {
+      if (this.#uploaderInstance) {
+        this.#closeModal();
+
+        this.#uploaderInstance.open();
+      }
+    };
+
+    const uploadBtn = document.getElementById("pc-select_btn_upload");
+    const designBtn = document.getElementById("pc-select_btn_design");
+
+    if (uploadBtn) uploadBtn?.addEventListener("click", upload);
+    if (designBtn) designBtn?.addEventListener("click", design);
+  }
+
+  #modalTrap() {
+    const modal = document.getElementById("pc-select_wrap");
+
+    const focusableEls = modal?.querySelectorAll("button");
+
+    const firstFocusableEl = focusableEls && focusableEls[0];
+    const lastFocusableEl =
+      focusableEls && focusableEls[focusableEls.length - 1];
+
+    const handleModalTrap = (e: KeyboardEvent) => {
+      if (e.key === "Tab") {
+        if (e.shiftKey) {
+          if (lastFocusableEl && document.activeElement === firstFocusableEl) {
+            lastFocusableEl.focus();
+            e.preventDefault();
+          }
+        } else {
+          if (firstFocusableEl && document.activeElement === lastFocusableEl) {
+            firstFocusableEl.focus();
+            e.preventDefault();
+          }
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleModalTrap);
+  }
+
+  #addStyle() {
+    const sdkUrl = import.meta.env.VITE_SDK_URL
+      ? import.meta.env.VITE_SDK_URL
+      : "https://unpkg.com/@printcart/shopify-integration/dist";
+
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = `${sdkUrl}/style.css`;
+
+    document.head.appendChild(link);
+  }
+
+  #handleUploadSuccess(data: [DataWrap]) {
+    const ids = data.map((design) => design.data.id);
+
+    let input = <HTMLInputElement>(
+      document.querySelector('input[name="properties[_pcDesignIds]"]')
+    );
+
+    if (input) {
+      input.value += `,${ids.join()}`;
+    } else {
+      input = <HTMLInputElement>document.createElement("input");
       input.type = "hidden";
       input.name = "properties[_pcDesignIds]";
-      input.className = "printcart-designer_input";
+      input.className = "pc-designer_input";
       input.value = ids.join();
 
-      const productForms = document.querySelectorAll(
-        'form[action="/cart/add"]'
-      );
-      const form = productForms[productForms.length - 1];
+      this.#productForm?.appendChild(input);
+    }
 
-      if (!form || !form.parentNode) {
-        throw new Error("Can't find form element");
-      }
+    // Show design image list on product page
+    const previewWrap =
+      document.querySelector(".pc-preview-wrap") ||
+      document.createElement("div");
 
-      form.appendChild(input);
+    previewWrap.className = "pc-preview-wrap";
 
-      // Show design image list on product page
-      const imageWrap = document.createElement("div");
+    data.forEach((design) => {
+      if (!design.data.design_image.url) return;
 
-      imageWrap.id = "printcart-designer_image-wrap";
+      const preview = document.createElement("div");
+      preview.className = "pc-preview";
+      preview.setAttribute("data-pc-design-id", design.data.id);
 
-      const iframe = document.querySelector("iframe#pc-designer-iframe");
+      const btn = document.createElement("button");
+      btn.className = "pc-btn pc-danger-btn";
+      btn.innerHTML = this.options?.removeUploaderBtnText
+        ? this.options.removeUploaderBtnText
+        : "Remove";
+      btn.onclick = () => {
+        const newIds = input.value
+          .split(",")
+          .filter((id) => id !== design.data.id);
 
-      if (!iframe || !(iframe instanceof HTMLIFrameElement)) {
-        throw new Error("Can't find Iframe Element");
-      }
+        input.value = newIds.join();
 
-      data.forEach((design: any) => {
-        const button = document.createElement("button");
-        button.className = "printcart-designer_edit-button";
-        button.setAttribute("data-printcart-design-id", design.id);
+        preview.remove();
+      };
 
-        button.onclick = () => {
-          self.#designerInstance.editDesign(design.id);
-        };
+      const image = document.createElement("img");
+      image.src = design.data.design_image.url;
+      image.className = "pc-uploader-image";
 
-        const image = document.createElement("img");
+      const overlay = document.createElement("div");
+      overlay.className = "pc-preview-overlay";
 
-        image.src = design.design_image.url;
-        image.className = "printcart-designer_image";
+      overlay.appendChild(btn);
+      preview.appendChild(overlay);
+      preview.appendChild(image);
+      previewWrap.appendChild(preview);
+    });
 
-        const span = document.createElement("span");
-        //TODO: i18n
-        span.innerHTML = this.options?.editBtnText
-          ? this.options.editBtnText
-          : "Edit";
-        span.className = "printcart-designer_overlay";
+    const wrap = document.querySelector("div#pc-designer_wrap");
 
-        button.onmouseover = function () {
-          //@ts-ignore
-          this.style.background = "rgb(0 0 0 / 80%)";
-          span.style.display = "block";
-        };
-        button.onmouseout = function () {
-          //@ts-ignore
-          this.style.background = "transparent";
-          span.style.display = "none";
-        };
+    if (!document.querySelector(".princart-preview-heading")) {
+      const heading = document.createElement("h5");
+      heading.className = "princart-preview-heading";
+      heading.innerHTML = "Your artworks";
 
-        button.appendChild(image);
-        button.appendChild(span);
-        imageWrap.appendChild(button);
+      wrap?.appendChild(heading);
+    }
+
+    wrap?.appendChild(previewWrap);
+
+    const callback = this.options?.onUploadSuccess;
+
+    if (callback) callback(data, this.#uploaderInstance);
+  }
+
+  #handleDesignSuccess(data: [Data]) {
+    const self = this;
+    const ids = data.map((design) => design.id);
+
+    let input = <HTMLInputElement>(
+      document.querySelector('input[name="properties[_pcDesignIds]"]')
+    );
+
+    if (input) {
+      input.value += `,${ids.join()}`;
+    } else {
+      input = <HTMLInputElement>document.createElement("input");
+      input.type = "hidden";
+      input.name = "properties[_pcDesignIds]";
+      input.className = "pc-designer_input";
+      input.value = ids.join();
+
+      this.#productForm?.appendChild(input);
+    }
+
+    const previewWrap =
+      document.querySelector(".pc-preview-wrap") ||
+      document.createElement("div");
+
+    previewWrap.className = "pc-preview-wrap";
+
+    data.forEach((design) => {
+      if (!design.design_image.url) return;
+
+      const preview = document.createElement("div");
+      preview.className = "pc-preview";
+      preview.setAttribute("data-pc-design-id", design.id);
+
+      const editBtn = document.createElement("button");
+      editBtn.className = "pc-btn pc-primary-btn";
+      editBtn.innerHTML = "Edit";
+      editBtn.onclick = () => {
+        self.#designerInstance.editDesign(design.id);
+      };
+
+      const removeBtn = document.createElement("button");
+      removeBtn.className = "pc-btn pc-danger-btn";
+      removeBtn.innerHTML = "Remove";
+      removeBtn.onclick = () => {
+        const newIds = input.value.split(",").filter((id) => id !== design.id);
+
+        input.value = newIds.join();
+
+        preview.remove();
+      };
+
+      const image = document.createElement("img");
+      image.src = design.design_image.url;
+      image.className = "pc-uploader-image";
+
+      const overlay = document.createElement("div");
+      overlay.className = "pc-preview-overlay";
+
+      overlay.appendChild(editBtn);
+      overlay.appendChild(removeBtn);
+      preview.appendChild(overlay);
+      preview.appendChild(image);
+      previewWrap.appendChild(preview);
+    });
+
+    const wrap = document.querySelector("div#pc-designer_wrap");
+
+    wrap?.appendChild(previewWrap);
+
+    const callback = this.options?.onDesignCreateSuccess;
+
+    if (callback) callback(data, this.#designerInstance);
+  }
+
+  #registerUploaderEvents() {
+    if (this.#uploaderInstance) {
+      this.#uploaderInstance.on("upload-success", (data: [DataWrap]) => {
+        this.#handleUploadSuccess(data);
+        this.#uploaderInstance.close();
+      });
+    }
+  }
+
+  #registerDesignerEvents() {
+    if (this.#designerInstance) {
+      this.#designerInstance.on("upload-success", (data: [Data]) => {
+        this.#handleDesignSuccess(data);
+        this.#designerInstance.close();
       });
 
-      const wrap = document.querySelector("div#printcart-designer_wrap");
+      this.#designerInstance.on("edit-success", (data: Data) => {
+        if (!data.design_image.url) return;
 
-      wrap?.appendChild(imageWrap);
+        const img = document.querySelector(
+          `[data-pc-design-id="${data.id}"] img`
+        );
 
-      const callback = this.options?.onCreateSuccess;
+        if (!img || !(img instanceof HTMLImageElement)) {
+          throw new Error("Can't find image element");
+        }
 
-      if (callback) callback(data, this.#designerInstance);
+        img.src = data.design_image.url;
 
-      this.#designerInstance.close();
-    });
+        const callback = this.options?.onDesignEditSuccess;
 
-    this.#designerInstance.on("edit-success", (data: any) => {
-      const img = document.querySelector(
-        `[data-printcart-design-id="${data.id}"] img`
-      );
+        this.#designerInstance.close();
 
-      if (!img || !(img instanceof HTMLImageElement)) {
-        throw new Error("Can't find image element");
-      }
-
-      img.src = data.design_image.url;
-
-      const callback = this.options?.onEditSuccess;
-
-      if (callback) callback(data, this.#designerInstance);
-
-      this.#designerInstance.close();
-    });
+        if (callback) callback(data, this.#designerInstance);
+      });
+    }
   }
 
   #getUnauthToken() {
@@ -232,32 +539,41 @@ class PrintcartDesignerShopify {
     }
   }
 
-  #createDesignBtn() {
-    const cartForm = document.querySelector('form[action="/cart/add"]');
+  #createBtn() {
+    const cartForm = this.#productForm;
 
-    if (!cartForm || !cartForm.parentNode) {
+    if (!cartForm?.parentNode) {
+      console.log("Can not find cart form");
+
       return;
     }
 
     const wrap = document.createElement("div");
-    wrap.id = "printcart-designer_wrap";
+    wrap.id = "pc-designer_wrap";
 
     const button = document.createElement("button");
-    button.id = "printcart-designer_btn";
+    button.id = "pc-btn";
     button.className = "button";
     button.innerHTML = this.options?.designBtnText
       ? this.options.designBtnText
       : "Start Design";
-    // button.disabled = true;
-
-    button.onclick = () => {
-      this.#designerInstance.render();
-    };
+    button.disabled = true;
 
     wrap.appendChild(button);
 
-    cartForm.parentNode.insertBefore(wrap, cartForm);
+    cartForm?.parentNode.insertBefore(wrap, cartForm);
   }
 }
 
-new PrintcartDesignerShopify();
+const prepare = async () => {
+  if (import.meta.env.DEV) {
+    // const { worker } = require("./mocks/browser");
+    //@ts-ignore
+    const { worker } = await import("../mocks/browser");
+    worker.start();
+  }
+};
+
+prepare().then(() => new PrintcartDesignerShopify());
+
+// new PrintcartDesignerShopify();
