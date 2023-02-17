@@ -25,11 +25,11 @@ Add `window.PrintcartDesignerShopifyOptions` variable before our script tag to c
 window.PrintcartDesignerShopifyOptions = {
   designBtnText: "",
   editBtnText: "",
-  onCreateSuccess: (data) => {},
-  onEditSuccess: (data) => {},
+  onCreateSuccess: (data, context) => {},
+  onEditSuccess: (data, context) => {},
 };
 
-<script src="https://unpkg.com/@printcart/shopify-integration/dist/main.js"></script>
+<script src="https://unpkg.com/@printcart/shopify-integration/dist/main.js"></script>;
 ```
 
 ### `designBtnText`
@@ -66,7 +66,7 @@ window.PrintcartDesignerShopifyOptions = {
   onEditSuccess: (data) => console.log(data),
 };
 
-<script src="https://unpkg.com/@printcart/shopify-integration-sdk/dist/main.js"></script>
+<script src="https://unpkg.com/@printcart/shopify-integration-sdk/dist/main.js"></script>;
 ```
 
 <a href="https://printcart.com">
