@@ -49,7 +49,7 @@
   },
   "dependencies": {
     "@printcart/design-tool-sdk": "^1.6.0",
-    "@printcart/uploader-sdk": "^1.0.8"
+    "@printcart/uploader-sdk": "^1.2.0"
   },
   "msw": {
     "workerDirectory": "public"
