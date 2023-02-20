@@ -37,7 +37,8 @@
     "events" "^3.3.0"
 
 "@printcart/uploader-sdk@^1.2.0":
-  "resolved" "file:../uploader-sdk"
+  "integrity" "sha512-ubnWBUyuAZoppEbMSghmDtgKRdtlJzoYwiqiDJtGJ7NTt5sv/qXHCce0ewQoBIs0d6nq70HLJl/Y41jG4AxgrQ=="
+  "resolved" "https://registry.npmjs.org/@printcart/uploader-sdk/-/uploader-sdk-1.2.0.tgz"
   "version" "1.2.0"
   dependencies:
     "events" "^3.3.0"
