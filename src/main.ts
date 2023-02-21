@@ -276,7 +276,6 @@ class PrintcartDesignerShopify {
   }
 
   #handleUploadSuccess(data: [DataWrap]) {
-    console.log(data);
     const ids = data.map((design) => design.data.id);
 
     let input = <HTMLInputElement>(
