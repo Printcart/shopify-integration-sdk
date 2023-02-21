@@ -23,7 +23,10 @@ type DataWrap = {
 type Data = {
   id: string;
   design_image: {
-    url: string | null;
+    url?: string;
+  };
+  preview_image: {
+    url?: string;
   };
 };
 
@@ -402,7 +405,7 @@ class PrintcartDesignerShopify {
       };
 
       const image = document.createElement("img");
-      image.src = design.design_image.url;
+      image.src = design.preview_image?.url || design.design_image.url;
       image.className = "pc-uploader-image";
 
       const overlay = document.createElement("div");
