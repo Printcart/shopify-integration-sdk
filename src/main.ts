@@ -13,6 +13,7 @@ interface IOptions {
   onUploadSuccess?: (data: [DataWrap] | [Data], ctx: any) => void;
   onDesignCreateSuccess?: (data: [DataWrap] | [Data], ctx: any) => void;
   onDesignEditSuccess?: (data: Data, ctx: any) => void;
+  designerOptions: {};
 }
 
 type DataWrap = {
@@ -78,6 +79,7 @@ class PrintcartDesignerShopify {
           token: this.token,
           productId: this.productId,
           options: {
+            ...this.options?.designerOptions,
             designerUrl: this.#designerUrl,
           },
         });
@@ -93,6 +95,7 @@ class PrintcartDesignerShopify {
         this.#uploaderInstance = new PrintcartUploader({
           token: this.token,
           productId: this.productId,
+          uploaderUrl: "http://127.0.0.1:5173/",
         });
 
         this.#registerUploaderEvents();
