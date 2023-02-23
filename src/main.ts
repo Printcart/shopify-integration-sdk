@@ -98,7 +98,6 @@ class PrintcartDesignerShopify {
         this.#uploaderInstance = new PrintcartUploader({
           token: this.token,
           productId: this.productId,
-          uploaderUrl: "http://127.0.0.1:5173/",
         });
 
         this.#registerUploaderEvents();
