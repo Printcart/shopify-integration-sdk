@@ -132,7 +132,7 @@ class PrintcartDesignerShopify {
 
     if (modal) {
       modal.style.display = "flex";
-      document.body.style.overflow = "hidden";
+      document.body.classList.toggle("pc-overflow");
     }
 
     const closeBtn = modal?.querySelector("#pc-select_close-btn");
@@ -144,7 +144,7 @@ class PrintcartDesignerShopify {
 
     if (modal) {
       modal.style.display = "none";
-      // document.body.style.overflow = "scroll";
+      document.body.classList.toggle("pc-overflow");
     }
   }
 
