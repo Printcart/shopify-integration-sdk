@@ -14,6 +14,7 @@ interface IOptions {
   onDesignCreateSuccess?: (data: [DataWrap] | [Data], ctx: any) => void;
   onDesignEditSuccess?: (data: Data, ctx: any) => void;
   designerOptions: {};
+  hideBtn: boolean;
 }
 
 type DataWrap = {
@@ -64,7 +65,13 @@ class PrintcartDesignerShopify {
     }
 
     this.#addStyle();
-    this.#createBtn();
+
+    const hideBtn = this.options?.hideBtn;
+
+    if (!hideBtn) {
+      this.#createBtn();
+    }
+
     this.#openSelectModal();
     this.#registerCloseModal();
     this.#modalTrap();
@@ -88,10 +95,6 @@ class PrintcartDesignerShopify {
         });
 
         this.#registerDesignerEvents();
-
-        if (btn && btn instanceof HTMLButtonElement) {
-          btn.disabled = false;
-        }
       }
 
       if (isUploadEnabled) {
@@ -101,7 +104,14 @@ class PrintcartDesignerShopify {
         });
 
         this.#registerUploaderEvents();
+      }
 
+      if (btn && btn instanceof HTMLButtonElement) {
+        btn.disabled = false;
+      } else {
+        this.#createBtn();
+
+        const btn = document.querySelector("button#pc-btn");
         if (btn && btn instanceof HTMLButtonElement) {
           btn.disabled = false;
         }
@@ -247,13 +257,13 @@ class PrintcartDesignerShopify {
       if (e.key === "Tab") {
         if (e.shiftKey) {
           if (lastFocusableEl && document.activeElement === firstFocusableEl) {
-            lastFocusableEl.focus();
             e.preventDefault();
+            lastFocusableEl.focus();
           }
         } else {
           if (firstFocusableEl && document.activeElement === lastFocusableEl) {
-            firstFocusableEl.focus();
             e.preventDefault();
+            firstFocusableEl.focus();
           }
         }
       }
