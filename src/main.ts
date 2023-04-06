@@ -79,8 +79,6 @@ class PrintcartDesignerShopify {
     this.#getPrintcartProduct().then((res) => {
       this.productId = res.data.id;
 
-      const btn = document.querySelector("button#pc-btn");
-
       const isDesignEnabled = res.data.enable_design;
       const isUploadEnabled = res.data.enable_upload;
 
@@ -106,14 +104,18 @@ class PrintcartDesignerShopify {
         this.#registerUploaderEvents();
       }
 
-      if (btn && btn instanceof HTMLButtonElement) {
-        btn.disabled = false;
-      } else {
-        this.#createBtn();
+      const btn = document.querySelector("button#pc-btn");
 
-        const newBtn = document.querySelector("button#pc-btn");
-        if (newBtn && newBtn instanceof HTMLButtonElement) {
-          newBtn.disabled = false;
+      if (isUploadEnabled || isDesignEnabled) {
+        if (btn && btn instanceof HTMLButtonElement) {
+          btn.disabled = false;
+        } else {
+          this.#createBtn();
+
+          const newBtn = document.querySelector("button#pc-btn");
+          if (newBtn && newBtn instanceof HTMLButtonElement) {
+            newBtn.disabled = false;
+          }
         }
       }
 
