@@ -111,9 +111,9 @@ class PrintcartDesignerShopify {
       } else {
         this.#createBtn();
 
-        const btn = document.querySelector("button#pc-btn");
-        if (btn && btn instanceof HTMLButtonElement) {
-          btn.disabled = false;
+        const newBtn = document.querySelector("button#pc-btn");
+        if (newBtn && newBtn instanceof HTMLButtonElement) {
+          newBtn.disabled = false;
         }
       }
 
