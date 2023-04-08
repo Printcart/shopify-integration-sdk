@@ -14,7 +14,6 @@ interface IOptions {
   onDesignCreateSuccess?: (data: [DataWrap] | [Data], ctx: any) => void;
   onDesignEditSuccess?: (data: Data, ctx: any) => void;
   designerOptions: {};
-  hideBtn: boolean;
 }
 
 type DataWrap = {
@@ -65,13 +64,6 @@ class PrintcartDesignerShopify {
     }
 
     this.#addStyle();
-
-    const hideBtn = this.options?.hideBtn;
-
-    if (!hideBtn) {
-      this.#createBtn();
-    }
-
     this.#openSelectModal();
     this.#registerCloseModal();
     this.#modalTrap();
@@ -107,16 +99,7 @@ class PrintcartDesignerShopify {
       const btn = document.querySelector("button#pc-btn");
 
       if (isUploadEnabled || isDesignEnabled) {
-        if (btn && btn instanceof HTMLButtonElement) {
-          btn.disabled = false;
-        } else {
-          this.#createBtn();
-
-          const newBtn = document.querySelector("button#pc-btn");
-          if (newBtn && newBtn instanceof HTMLButtonElement) {
-            newBtn.disabled = false;
-          }
-        }
+        this.#createBtn();
       }
 
       const handleClick = () => {
@@ -573,7 +556,6 @@ class PrintcartDesignerShopify {
     button.innerHTML = this.options?.designBtnText
       ? this.options.designBtnText
       : "Start Design";
-    button.disabled = true;
 
     wrap.appendChild(button);
 
