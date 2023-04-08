@@ -96,30 +96,24 @@ class PrintcartDesignerShopify {
         this.#registerUploaderEvents();
       }
 
-      const btn = document.querySelector("button#pc-btn");
-
       if (isUploadEnabled || isDesignEnabled) {
         this.#createBtn();
       }
-
-      const handleClick = () => {
-        if (this.#designerInstance && !this.#uploaderInstance) {
-          this.#designerInstance.render();
-        }
-
-        if (!this.#designerInstance && this.#uploaderInstance) {
-          this.#uploaderInstance.open();
-        }
-
-        if (this.#designerInstance && this.#uploaderInstance) {
-          this.#openModal();
-        }
-      };
-
-      if (btn && btn instanceof HTMLButtonElement) {
-        btn.onclick = handleClick;
-      }
     });
+  }
+
+  handleOpenDesignMode() {
+    if (this.#designerInstance && !this.#uploaderInstance) {
+      this.#designerInstance.render();
+    }
+
+    if (!this.#designerInstance && this.#uploaderInstance) {
+      this.#uploaderInstance.open();
+    }
+
+    if (this.#designerInstance && this.#uploaderInstance) {
+      this.#openModal();
+    }
   }
 
   #openModal() {
@@ -556,6 +550,8 @@ class PrintcartDesignerShopify {
     button.innerHTML = this.options?.designBtnText
       ? this.options.designBtnText
       : "Start Design";
+
+    button.onclick = () => this.handleOpenDesignMode;
 
     wrap.appendChild(button);
 
