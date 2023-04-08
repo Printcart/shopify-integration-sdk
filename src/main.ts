@@ -102,20 +102,6 @@ class PrintcartDesignerShopify {
     });
   }
 
-  handleOpenDesignMode() {
-    if (this.#designerInstance && !this.#uploaderInstance) {
-      this.#designerInstance.render();
-    }
-
-    if (!this.#designerInstance && this.#uploaderInstance) {
-      this.#uploaderInstance.open();
-    }
-
-    if (this.#designerInstance && this.#uploaderInstance) {
-      this.#openModal();
-    }
-  }
-
   #openModal() {
     const modal = document.getElementById("pc-select_wrap");
 
@@ -551,7 +537,19 @@ class PrintcartDesignerShopify {
       ? this.options.designBtnText
       : "Start Design";
 
-    button.onclick = () => this.handleOpenDesignMode;
+    button.onclick = () => {
+      if (this.#designerInstance && !this.#uploaderInstance) {
+        this.#designerInstance.render();
+      }
+
+      if (!this.#designerInstance && this.#uploaderInstance) {
+        this.#uploaderInstance.open();
+      }
+
+      if (this.#designerInstance && this.#uploaderInstance) {
+        this.#openModal();
+      }
+    };
 
     wrap.appendChild(button);
 
