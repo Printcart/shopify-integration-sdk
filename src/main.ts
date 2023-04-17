@@ -267,7 +267,7 @@ class PrintcartDesignerShopify {
       input.className = "pc-designer_input";
       input.value = ids.join();
 
-      this.#productForm?.appendChild(input);
+      this.#cardForm?.appendChild(input);
     }
 
     // Show design image list on product page
