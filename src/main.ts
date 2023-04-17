@@ -39,7 +39,7 @@ class PrintcartDesignerShopify {
   #designerInstance: any;
   #uploaderInstance: any;
   #productForm: HTMLFormElement | null;
-  #cardForm: HTMLFormElement | null;
+  #cartForm: HTMLFormElement | null;
 
   constructor() {
     this.token = this.#getUnauthToken();
@@ -57,7 +57,7 @@ class PrintcartDesignerShopify {
       : "https://customizer.printcart.com";
 
     this.#productForm = document.querySelector('form[action="/cart/add"]');
-    this.#cardForm = document.querySelector('form[action="/cart/add"][data-type="add-to-cart-form"]');
+    this.#cartForm = document.querySelector('form[action="/cart/add"][data-type="add-to-cart-form"]');
 
     if (!this.#productForm) {
       throw new Error(
@@ -267,7 +267,7 @@ class PrintcartDesignerShopify {
       input.className = "pc-designer_input";
       input.value = ids.join();
 
-      this.#productForm?.appendChild(input);
+      this.#cartForm?.appendChild(input);
     }
 
     // Show design image list on product page
@@ -346,7 +346,7 @@ class PrintcartDesignerShopify {
       input.className = "pc-designer_input";
       input.value = ids.join();
 
-      this.#cardForm?.appendChild(input);
+      this.#cartForm?.appendChild(input);
     }
 
     const previewWrap =
