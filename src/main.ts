@@ -267,7 +267,11 @@ class PrintcartDesignerShopify {
       input.className = "pc-designer_input";
       input.value = ids.join();
 
-      this.#cartForm?.appendChild(input);
+      if(this.#cartForm) {
+        this.#cartForm.appendChild(input);
+      }else {
+        this.#productForm?.appendChild(input);
+      }
     }
 
     // Show design image list on product page
@@ -346,7 +350,11 @@ class PrintcartDesignerShopify {
       input.className = "pc-designer_input";
       input.value = ids.join();
 
-      this.#cartForm?.appendChild(input);
+      if(this.#cartForm) {
+        this.#cartForm.appendChild(input);
+      }else {
+        this.#productForm?.appendChild(input);
+      }
     }
 
     const previewWrap =
