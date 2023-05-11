@@ -74,10 +74,28 @@ class PrintcartDesignerShopify {
 
     let variantId = null;
 
-    const variantSelect = this.#productForm.querySelector('input[name="id"]');
-    variantSelect?.addEventListener("change", function () {
+    const variantSelect = this.#productForm.querySelector(
+      'form[action="/cart/add"] input[name="id"]'
+    );
+
+    variantSelect?.addEventListener("change", () => {
       variantId = variantSelect.value;
+
+      this.#updateVariantId(variantId);
     });
+
+    this.#updateVariantId(variantId);
+  }
+
+  #updateVariantId(variantId: string | null) {
+    if (!variantId) {
+      const shopifyMetaData = window?.ShopifyAnalytics.meta;
+      variantId = shopifyMetaData?.selectedVariantId;
+    }
+
+    if (!variantId) {
+      throw new Error("Can not find product variant ID");
+    }
 
     this.#getPrintcartProduct(variantId).then((res) => {
       this.productId = res.data.id;
@@ -481,15 +499,6 @@ class PrintcartDesignerShopify {
   }
 
   async #getPrintcartProduct(variantId: string | null) {
-    if (!variantId) {
-      const shopifyMetaData = window?.ShopifyAnalytics.meta;
-      variantId = shopifyMetaData?.selectedVariantId;
-    }
-
-    if (!variantId) {
-      throw new Error("Can not find product variant ID");
-    }
-
     try {
       const printcartApiUrl = `${this.#apiUrl}/${variantId}`;
 
