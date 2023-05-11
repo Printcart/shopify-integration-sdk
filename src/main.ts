@@ -57,7 +57,9 @@ class PrintcartDesignerShopify {
       : "https://customizer.printcart.com";
 
     this.#productForm = document.querySelector('form[action="/cart/add"]');
-    this.#cartForm = document.querySelector('form[action="/cart/add"][data-type="add-to-cart-form"]');
+    this.#cartForm = document.querySelector(
+      'form[action="/cart/add"][data-type="add-to-cart-form"]'
+    );
 
     if (!this.#productForm) {
       throw new Error(
@@ -69,6 +71,47 @@ class PrintcartDesignerShopify {
     this.#openSelectModal();
     this.#registerCloseModal();
     this.#modalTrap();
+
+    let urlProductShopify = window.location.href;
+    new MutationObserver(() => {
+      const url = location.href;
+      if (url !== urlProductShopify) {
+        urlProductShopify = url;
+
+        this.#getPrintcartProduct().then((res) => {
+          this.productId = res.data.id;
+
+          const isDesignEnabled = res.data.enable_design;
+          const isUploadEnabled = res.data.enable_upload;
+
+          if (isDesignEnabled) {
+            this.#designerInstance = new PrintcartDesigner({
+              token: this.token,
+              productId: this.productId,
+              options: {
+                ...this.options?.designerOptions,
+                designerUrl: this.#designerUrl,
+              },
+            });
+
+            this.#registerDesignerEvents();
+          }
+
+          if (isUploadEnabled) {
+            this.#uploaderInstance = new PrintcartUploader({
+              token: this.token,
+              productId: this.productId,
+            });
+
+            this.#registerUploaderEvents();
+          }
+
+          if (isUploadEnabled || isDesignEnabled) {
+            this.#createBtn();
+          }
+        });
+      }
+    }).observe(document, { subtree: true, childList: true });
 
     this.#getPrintcartProduct().then((res) => {
       this.productId = res.data.id;
@@ -267,9 +310,9 @@ class PrintcartDesignerShopify {
       input.className = "pc-designer_input";
       input.value = ids.join();
 
-      if(this.#cartForm) {
+      if (this.#cartForm) {
         this.#cartForm.appendChild(input);
-      }else {
+      } else {
         this.#productForm?.appendChild(input);
       }
     }
@@ -350,9 +393,9 @@ class PrintcartDesignerShopify {
       input.className = "pc-designer_input";
       input.value = ids.join();
 
-      if(this.#cartForm) {
+      if (this.#cartForm) {
         this.#cartForm.appendChild(input);
-      }else {
+      } else {
         this.#productForm?.appendChild(input);
       }
     }
@@ -472,37 +515,17 @@ class PrintcartDesignerShopify {
   }
 
   async #getPrintcartProduct() {
-    const url = window.location.href;
-    const urlArr = url.split("/");
-    const handle = urlArr[urlArr.length - 1].split("?")[0];
+    const shopifyMetaData = window?.ShopifyAnalytics.meta;
+    const selectedVariantId = shopifyMetaData?.selectedVariantId;
 
-    // Not in product page
-    if (handle === "") return null;
+    console.log(selectedVariantId);
 
-    const shopifyApiUrl = "/products/" + handle + ".js";
+    if (!selectedVariantId) {
+      throw new Error("Can not find product variant ID");
+    }
 
     try {
-      const shopifyPromise = await fetch(shopifyApiUrl, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      const shopifyProduct = await shopifyPromise.json();
-
-      if (!shopifyPromise.ok) {
-        throw new Error(
-          "Something wrong with Shopify API. Please try again later"
-        );
-      }
-
-      const variantId = shopifyProduct.variants[0].id;
-
-      if (!variantId) {
-        throw new Error("Can not find product variant ID");
-      }
-
-      const printcartApiUrl = `${this.#apiUrl}/${variantId}`;
+      const printcartApiUrl = `${this.#apiUrl}/${selectedVariantId}`;
 
       const token = this.token;
 
