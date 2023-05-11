@@ -81,13 +81,13 @@ class PrintcartDesignerShopify {
     variantSelect?.addEventListener("change", () => {
       variantId = variantSelect.value;
 
-      this.#updateVariantId(variantId);
+      this.#initializeProductTools(variantId);
     });
 
-    this.#updateVariantId(variantId);
+    this.#initializeProductTools(variantId);
   }
 
-  #updateVariantId(variantId: string | null) {
+  #initializeProductTools(variantId: string | null) {
     if (!variantId) {
       const shopifyMetaData = window?.ShopifyAnalytics.meta;
       variantId = shopifyMetaData?.selectedVariantId;
