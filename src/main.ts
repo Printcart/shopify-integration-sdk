@@ -498,7 +498,7 @@ class PrintcartDesignerShopify {
     return src;
   }
 
-  async #getPrintcartProduct(variantId: string | null) {
+  async #getPrintcartProduct(variantId: string) {
     try {
       const printcartApiUrl = `${this.#apiUrl}/${variantId}`;
 
