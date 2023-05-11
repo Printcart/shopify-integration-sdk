@@ -72,48 +72,14 @@ class PrintcartDesignerShopify {
     this.#registerCloseModal();
     this.#modalTrap();
 
-    let urlProductShopify = window.location.href;
-    new MutationObserver(() => {
-      const url = location.href;
-      if (url !== urlProductShopify) {
-        urlProductShopify = url;
+    let variantId = null;
 
-        this.#getPrintcartProduct().then((res) => {
-          this.productId = res.data.id;
+    const variantSelect = this.#productForm.querySelector('input[name="id"]');
+    variantSelect?.addEventListener("change", function () {
+      variantId = variantSelect.value;
+    });
 
-          const isDesignEnabled = res.data.enable_design;
-          const isUploadEnabled = res.data.enable_upload;
-
-          if (isDesignEnabled) {
-            this.#designerInstance = new PrintcartDesigner({
-              token: this.token,
-              productId: this.productId,
-              options: {
-                ...this.options?.designerOptions,
-                designerUrl: this.#designerUrl,
-              },
-            });
-
-            this.#registerDesignerEvents();
-          }
-
-          if (isUploadEnabled) {
-            this.#uploaderInstance = new PrintcartUploader({
-              token: this.token,
-              productId: this.productId,
-            });
-
-            this.#registerUploaderEvents();
-          }
-
-          if (isUploadEnabled || isDesignEnabled) {
-            this.#createBtn();
-          }
-        });
-      }
-    }).observe(document, { subtree: true, childList: true });
-
-    this.#getPrintcartProduct().then((res) => {
+    this.#getPrintcartProduct(variantId).then((res) => {
       this.productId = res.data.id;
 
       const isDesignEnabled = res.data.enable_design;
@@ -514,18 +480,18 @@ class PrintcartDesignerShopify {
     return src;
   }
 
-  async #getPrintcartProduct() {
-    const shopifyMetaData = window?.ShopifyAnalytics.meta;
-    const selectedVariantId = shopifyMetaData?.selectedVariantId;
+  async #getPrintcartProduct(variantId: string | null) {
+    if (!variantId) {
+      const shopifyMetaData = window?.ShopifyAnalytics.meta;
+      variantId = shopifyMetaData?.selectedVariantId;
+    }
 
-    console.log(selectedVariantId);
-
-    if (!selectedVariantId) {
+    if (!variantId) {
       throw new Error("Can not find product variant ID");
     }
 
     try {
-      const printcartApiUrl = `${this.#apiUrl}/${selectedVariantId}`;
+      const printcartApiUrl = `${this.#apiUrl}/${variantId}`;
 
       const token = this.token;
 
