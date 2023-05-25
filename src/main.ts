@@ -535,33 +535,37 @@ class PrintcartDesignerShopify {
       return;
     }
 
-    const wrap = document.createElement("div");
-    wrap.id = "pc-designer_wrap";
+    let button = document.querySelector("div#pc-designer_wrap button#pc-btn");
 
-    const button = document.createElement("button");
-    button.id = "pc-btn";
-    button.className = "button";
-    button.innerHTML = this.options?.designBtnText
-      ? this.options.designBtnText
-      : "Start Design";
+    if (button === null) {
+      const wrap = document.createElement("div");
+      wrap.id = "pc-designer_wrap";
 
-    button.onclick = () => {
-      if (this.#designerInstance && !this.#uploaderInstance) {
-        this.#designerInstance.render();
-      }
+      button = document.createElement("button");
+      button.id = "pc-btn";
+      button.className = "button";
+      button.innerHTML = this.options?.designBtnText
+        ? this.options.designBtnText
+        : "Start Design";
+      wrap.appendChild(button);
 
-      if (!this.#designerInstance && this.#uploaderInstance) {
-        this.#uploaderInstance.open();
-      }
+      cartForm?.parentNode.insertBefore(wrap, cartForm);
+    }
 
-      if (this.#designerInstance && this.#uploaderInstance) {
-        this.#openModal();
-      }
-    };
+    if (button && button instanceof HTMLButtonElement)
+      button.onclick = () => {
+        if (this.#designerInstance && !this.#uploaderInstance) {
+          this.#designerInstance.render();
+        }
 
-    wrap.appendChild(button);
+        if (!this.#designerInstance && this.#uploaderInstance) {
+          this.#uploaderInstance.open();
+        }
 
-    cartForm?.parentNode.insertBefore(wrap, cartForm);
+        if (this.#designerInstance && this.#uploaderInstance) {
+          this.#openModal();
+        }
+      };
   }
 }
 
