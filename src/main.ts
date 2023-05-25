@@ -535,6 +535,11 @@ class PrintcartDesignerShopify {
       return;
     }
 
+    if (document.querySelector("div#pc-designer_wrap") !== null) {
+      const wrap = document.querySelector("div#pc-designer_wrap");
+      wrap?.remove();
+    }
+
     const wrap = document.createElement("div");
     wrap.id = "pc-designer_wrap";
 
