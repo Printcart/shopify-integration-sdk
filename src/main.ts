@@ -78,6 +78,8 @@ class PrintcartDesignerShopify {
       'form[action="/cart/add"] input[name="id"]'
     );
 
+    variantId = variantSelect?.value;
+
     variantSelect?.addEventListener("change", () => {
       variantId = variantSelect.value;
 
