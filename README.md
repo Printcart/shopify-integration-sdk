@@ -25,6 +25,7 @@ Add `window.PrintcartDesignerShopifyOptions` variable before our script tag to c
 window.PrintcartDesignerShopifyOptions = {
   designBtnText: "",
   editBtnText: "",
+  designClassName: "",
   onCreateSuccess: (data, context) => {},
   onEditSuccess: (data, context) => {},
 };
