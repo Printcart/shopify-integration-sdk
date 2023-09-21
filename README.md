@@ -39,6 +39,12 @@ window.PrintcartDesignerShopifyOptions = {
 
 Change the Start Design button text
 
+### `designClassName`
+
+- Type: string
+
+Style the Start design button with css
+
 ### `editBtnText`
 
 - Type: string
@@ -63,6 +69,7 @@ A function run when the design file finish editted.
 window.PrintcartDesignerShopifyOptions = {
   designBtnText: "Custom Start Design Text",
   editBtnText: "Custom Edit Design Text",
+  designClassName: "btn-css",
   onCreateSuccess: (data) => console.log(data),
   onEditSuccess: (data) => console.log(data),
 };
