@@ -7,23 +7,23 @@
   --pc-primary-color: #2f7bf8;
   --pc-red-color: #dc2626;
   --pc-border-color: #e5e7eb;
+  --pc-drank-color: #121212;
   --pc-transition-timing: 0.2s;
 }
 
 #pc-select_wrap {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
   display: none;
   position: fixed;
   top: 0;
   left: 0;
-  z-index: 9999;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  background: rgba(255, 255, 255, 92%);
-  transition: all var(--pc-transition-timing);
+  bottom: 0;
+  right: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 999999999;
+  -webkit-transition: opacity 200ms 0ms, visibility 0ms 0ms, z-index 0ms 0ms;
+  -moz-transition: opacity 200ms 0ms, visibility 0ms 0ms, z-index 0ms 0ms;
+  transition: opacity 200ms 0ms, visibility 0ms 0ms, z-index 0ms 0ms;
 }
 
 #pc-select_wrap * {
@@ -32,91 +32,162 @@
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
+#pc-select_wrap .pc-select-wrap {
+  z-index: 2;
+  background: rgba(245, 246, 247, 0.95);
+  -webkit-transition: opacity 200ms 0ms, visibility 0ms 0ms, z-index 0ms 0ms;
+  -moz-transition: opacity 200ms 0ms, visibility 0ms 0ms, z-index 0ms 0ms;
+  transition: opacity 200ms 0ms, visibility 0ms 0ms, z-index 0ms 0ms;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  overflow: hidden;
+}
+
+#pc-select_wrap .pc-select-inner {
+  position: absolute;
+  margin-top: auto;
+  margin-bottom: auto;
+  left: 50%;
+  margin-left: auto;
+  margin-right: auto;
+  transform: translate(-50%, -50%);
+  top: 48%;
+  width: 100%;
+  max-width: 100rem;
+}
+
 #pc-select_container {
   display: flex;
   width: 100%;
   justify-content: center;
 }
 
-#pc-select_container > .pc-select_btn:first-child {
+/* #pc-select_container>.pc-select_btn:first-child {
   margin-right: 32px;
-}
+} */
 
 #pc-select_header {
-  font-size: 40px;
-  margin-bottom: 40px;
+  bottom: 100%;
+  width: 100%;
+  padding-bottom: 1.25rem;
+  position: absolute;
+  text-align: center;
+  margin: 0;
+  font-size: 40pt;
 }
 
-.pc-select_btn_wrap {
+.pc-select_btn .pc-select_btn_wrap {
   display: flex;
-  align-items: center;
-  height: 100%;
+  justify-content: start;
+  overflow: hidden;
+  flex: 1 1 auto;
+  flex-direction: row;
+  box-shadow: 0 0.125rem 0.25rem 0 rgba(79, 90, 109, 0.25);
+  cursor: pointer;
+  background-color: #ffffff;
+}
+
+.pc-select_btn .pc-select_btn_wrap:hover {
+  box-shadow: 0 0.1875rem 0.625rem 0 rgba(79, 90, 109, 0.3);
 }
 
 .pc-select_btn {
-  border: 0;
-  padding: 0;
-  width: 33.33333%;
-  min-height: 150px;
-  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.1))
-    drop-shadow(0 1px 1px rgb(0 0 0 / 0.06));
+  border: none;
+  width: 50%;
+  padding: 10px;
+  background: none;
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.1)) drop-shadow(0 1px 1px rgb(0 0 0 / 0.06));
   transition: all 0.2s;
   cursor: pointer;
 }
 
 .pc-select_btn:hover {
-  filter: drop-shadow(0 10px 8px rgb(0 0 0 / 0.04))
-    drop-shadow(0 4px 3px rgb(0 0 0 / 0.1));
+  filter: drop-shadow(0 10px 8px rgb(0 0 0 / 0.04)) drop-shadow(0 4px 3px rgb(0 0 0 / 0.1));
 }
 
-.pc-select_btn_img {
-  margin-right: 20px;
-  width: 33.33333%;
-  height: 100%;
+.pc-select_btn .pc-select_btn_img {
+  min-height: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding-left: 32px;
-  padding-right: 32px;
+  width: 33.333333%;
+  position: relative;
+  overflow: hidden;
+  font-size: 1rem;
 }
 
-.pc-select_btn_content {
-  width: 66.66666%;
-  display: flex;
-  flex-direction: column;
-  align-items: start;
-}
-
-#pc-select_btn_upload .pc-select_btn_img {
+#pc-select_btn_upload .pc-select_btn_img_inner {
   background-color: var(--pc-cyan-color);
 }
 
-#pc-select_btn_design .pc-select_btn_img {
+#pc-select_btn_design .pc-select_btn_img_inner {
   background-color: var(--pc-amber-color);
 }
 
-.pc-select_btn_content h2 {
-  margin-top: 0;
-  margin-bottom: 16px;
-}
-
-.pc-select_btn_content ul {
-  padding-left: 12px;
+.pc-select_btn .pc-select_btn_img .pc-select_btn_img_inner {
+  height: auto;
+  position: relative;
+  text-align: center;
   margin: 0;
+  width: 100%;
+}
+
+.pc-select_btn_img_inner img {
+  position: absolute !important;
+  top: 50% !important;
+  margin-top: auto !important;
+  margin-bottom: auto !important;
+  left: 50% !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  transform: translate(-50%, -50%) !important;
+  height: 50%;
+  width: 50%;
+}
+
+.pc-select_btn .pc-select_btn_content {
+  font-size: 1.6rem;
+  width: 66.666667%;
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  padding-left: 1.125rem;
+}
+
+.pc-select_btn_content_inner {
+  flex: 1 1 auto;
+  padding: 1.5rem 2.25rem 1.5rem 0;
+  white-space: nowrap;
+}
+
+.pc-select_btn_content_inner ul {
+  margin: 12px 0 0 0;
+  list-style-type: "\2713";
   text-align: start;
-  list-style-type: none;
 }
 
-.pc-select_btn_content li {
+.pc-select_btn_content_inner ul li {
   margin-bottom: 6px;
+  /* margin-left: 10px; */
+  padding-left: 5px;
   color: var(--pc-gray-medium-color);
-  font-size: 16px;
-  padding-left: 4px;
 }
 
-.pc-select_btn_content li::marker {
-  content: "\2713";
+.pc-select_btn_content_inner li::marker {
   color: var(--pc-green-color);
+}
+
+.pc-select_btn_content_inner .pc-title {
+  margin-top: 0;
+  line-height: 1.15;
+  font-size: 3rem;
+  margin-bottom: 0.1875em;
+  font-weight: 500;
+  color: #3f4a59;
+  text-align: start;
+  margin-left: 8px;
 }
 
 .visually-hidden:not(:focus):not(:active) {
@@ -130,7 +201,7 @@
 }
 
 [data-modal-x] {
-  border-right: 2px solid;
+  border-right: 3px solid;
   bottom: 0;
   display: block;
   height: 2em;
@@ -142,10 +213,11 @@
   top: 0;
   transform: rotate(45deg);
   width: 2px;
+  color: #f00;
 }
 
 [data-modal-x]:after {
-  border-right: 2px solid;
+  border-right: 3px solid;
   content: "";
   height: 100%;
   left: 0;
@@ -153,6 +225,18 @@
   top: 0;
   transform: rotate(-90deg);
   width: 100%;
+}
+
+.pc-select_close-btn {
+  background: none;
+  border: none;
+  height: 2em;
+  padding: 0;
+  position: absolute;
+  left: 32px;
+  top: 32px;
+  width: 2em;
+  cursor: pointer;
 }
 
 #pc-select_close-btn {
@@ -165,6 +249,7 @@
   top: 32px;
   width: 2em;
   cursor: pointer;
+  z-index: 3;
 }
 
 #pc-select_close-btn:hover [data-modal-x] {
@@ -187,6 +272,25 @@
   cursor: pointer;
   margin-bottom: 8px;
   min-width: 74px;
+}
+
+#pc-btn {
+  border: none;
+  margin: 0;
+  padding: 0;
+  width: auto;
+  overflow: visible;
+  color: var(--pc-white-color);
+  background-color: var(--pc-drank-color);
+  line-height: normal;
+  -webkit-font-smoothing: inherit;
+  -moz-osx-font-smoothing: inherit;
+  -webkit-appearance: none;
+  padding: 8px 12px;
+  cursor: pointer;
+  margin-bottom: 8px;
+  min-width: 74px;
+  margin-top: 1rem;
 }
 
 .pc-primary-btn {
@@ -235,4 +339,101 @@
 
 .pc-overflow {
   overflow: hidden;
+}
+
+@-webkit-keyframes spin {
+  0% {
+    -webkit-transform: rotate(0deg);
+  }
+
+  100% {
+    -webkit-transform: rotate(360deg);
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@media only screen and (max-width: 992px) {
+  #pc-select_wrap .pc-select-wrap #pc-select_container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .pc-select_btn {
+    width: 70%;
+    margin-top: 10px;
+  }
+}
+
+@media only screen and (max-width: 600px) {
+
+  /* CSS for other than iOS devices */
+  @supports not (-webkit-touch-callout: none) {
+    .pc-select_btn {
+      width: 85%;
+    }
+
+    #pc-select_header {
+      padding-bottom: 1rem !important;
+      font-size: 25pt !important;
+    }
+
+    #pc-select_close-btn {
+      top: 20px !important;
+    }
+
+    .pc-select_btn_content_inner ul {
+      padding-left: 2px;
+      margin-top: 10px;
+      font-size: 1.15rem;
+    }
+
+    .pc-select_btn_content_inner ul li {
+      margin-left: 25px;
+    }
+
+    .pc-select_btn_content_inner .pc-title {
+      font-size: 1.5rem;
+      margin-bottom: 0.15em;
+    }
+  }
+
+  /* CSS specific to iOS devices */
+  @supports (-webkit-touch-callout: none) {
+    @media only screen and (max-width: 600px) {
+      #pc-select_wrap .pc-select-inner {
+        top: 50%;
+      }
+
+      .pc-select_btn {
+        width: 85.5%;
+      }
+
+      #pc-select_header {
+        padding-bottom: 0.8rem !important;
+        font-size: 25pt !important;
+      }
+
+      .pc-select_btn_content_inner .pc-title {
+        font-size: 1.1rem;
+      }
+
+      .pc-select_btn_content_inner ul {
+        padding-left: 0px;
+        font-size: 11.5px !important;
+      }
+
+      .pc-select_btn_content_inner ul li {
+        margin-left: 15px;
+      }
+    }
+  }
 }
