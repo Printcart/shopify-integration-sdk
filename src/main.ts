@@ -568,7 +568,7 @@ class PrintcartDesignerShopify {
         : "Start Design";
       wrap.appendChild(button);
 
-      cartForm.appendChild(wrap);
+      cartForm?.parentNode.insertBefore(wrap, cartForm);
     }
 
     if (button && button instanceof HTMLButtonElement)
