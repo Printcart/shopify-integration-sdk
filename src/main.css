@@ -56,7 +56,7 @@
   transform: translate(-50%, -50%);
   top: 48%;
   width: 100%;
-  max-width: 100rem;
+  max-width: 1000px;
 }
 
 #pc-select_container {
@@ -65,18 +65,14 @@
   justify-content: center;
 }
 
-/* #pc-select_container>.pc-select_btn:first-child {
-  margin-right: 32px;
-} */
-
 #pc-select_header {
   bottom: 100%;
   width: 100%;
-  padding-bottom: 1.25rem;
+  padding-bottom: 12.5px;
   position: absolute;
   text-align: center;
   margin: 0;
-  font-size: 40pt;
+  font-size: 35pt;
 }
 
 .pc-select_btn .pc-select_btn_wrap {
@@ -85,13 +81,13 @@
   overflow: hidden;
   flex: 1 1 auto;
   flex-direction: row;
-  box-shadow: 0 0.125rem 0.25rem 0 rgba(79, 90, 109, 0.25);
+  box-shadow: 0 1.25px 2.5px 0 rgba(79, 90, 109, 0.25);
   cursor: pointer;
   background-color: #ffffff;
 }
 
 .pc-select_btn .pc-select_btn_wrap:hover {
-  box-shadow: 0 0.1875rem 0.625rem 0 rgba(79, 90, 109, 0.3);
+  box-shadow: 0 1.875px 6.25px 0 rgba(79, 90, 109, 0.3);
 }
 
 .pc-select_btn {
@@ -114,7 +110,7 @@
   width: 33.333333%;
   position: relative;
   overflow: hidden;
-  font-size: 1rem;
+  font-size: 10px;
 }
 
 #pc-select_btn_upload .pc-select_btn_img_inner {
@@ -147,18 +143,18 @@
 }
 
 .pc-select_btn .pc-select_btn_content {
-  font-size: 1.6rem;
+  font-size: 16px;
   width: 66.666667%;
   display: -ms-flexbox;
   display: flex;
   -ms-flex-direction: column;
   flex-direction: column;
-  padding-left: 1.125rem;
+  padding-left: 11.25px;
 }
 
 .pc-select_btn_content_inner {
   flex: 1 1 auto;
-  padding: 1.5rem 2.25rem 1.5rem 0;
+  padding: 15px 22.5px 15px 0;
   white-space: nowrap;
 }
 
@@ -170,7 +166,7 @@
 
 .pc-select_btn_content_inner ul li {
   margin-bottom: 6px;
-  margin-left: 25px;
+  margin-left: 5px;
   padding-left: 5px;
   color: var(--pc-gray-medium-color);
 }
@@ -182,8 +178,8 @@
 .pc-select_btn_content_inner .pc-title {
   margin-top: 0;
   line-height: 1.15;
-  font-size: 3rem;
-  margin-bottom: 0.1875em;
+  font-size: 30px;
+  margin-bottom: 1.875px;
   font-weight: 500;
   color: #3f4a59;
   text-align: start;
@@ -204,7 +200,7 @@
   border-right: 3px solid;
   bottom: 0;
   display: block;
-  height: 2em;
+  height: 20px;
   left: 0;
   margin: auto;
   pointer-events: none;
@@ -230,24 +226,24 @@
 .pc-select_close-btn {
   background: none;
   border: none;
-  height: 2em;
+  height: 20px;
   padding: 0;
   position: absolute;
   left: 32px;
   top: 32px;
-  width: 2em;
+  width: 20px;
   cursor: pointer;
 }
 
 #pc-select_close-btn {
   background: none;
   border: none;
-  height: 2em;
+  height: 20px;
   padding: 0;
   position: absolute;
   left: 32px;
   top: 32px;
-  width: 2em;
+  width: 20px;
   cursor: pointer;
   z-index: 3;
 }
@@ -290,7 +286,7 @@
   cursor: pointer;
   margin-bottom: 8px;
   min-width: 74px;
-  margin-top: 1rem;
+  margin-top: 10px;
 }
 
 .pc-primary-btn {
@@ -382,7 +378,7 @@
     }
 
     #pc-select_header {
-      padding-bottom: 1rem !important;
+      padding-bottom: 10px !important;
       font-size: 25pt !important;
     }
 
@@ -393,7 +389,7 @@
     .pc-select_btn_content_inner ul {
       padding-left: 2px;
       margin-top: 10px;
-      font-size: 1.15rem;
+      font-size: 11.5px;
     }
 
     .pc-select_btn_content_inner ul li {
@@ -401,8 +397,8 @@
     }
 
     .pc-select_btn_content_inner .pc-title {
-      font-size: 1.5rem;
-      margin-bottom: 0.15em;
+      font-size: 15px;
+      margin-bottom: 1.5px;
     }
   }
 
@@ -418,12 +414,12 @@
       }
 
       #pc-select_header {
-        padding-bottom: 0.8rem !important;
+        padding-bottom: 8px !important;
         font-size: 25pt !important;
       }
 
       .pc-select_btn_content_inner .pc-title {
-        font-size: 1.1rem;
+        font-size: 11px;
       }
 
       .pc-select_btn_content_inner ul {
