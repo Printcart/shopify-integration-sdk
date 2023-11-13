@@ -57,9 +57,9 @@ class PrintcartDesignerShopify {
       ? import.meta.env.VITE_CUSTOMIZER_URL
       : "https://customizer.printcart.com";
 
-    this.#productForm = document.querySelector('form[action="/cart/add"]');
+    this.#productForm = document.querySelector('form[action$="/cart/add"]');
     this.#cartForm = document.querySelector(
-      'form[action="/cart/add"][data-type="add-to-cart-form"]'
+      'form[action$="/cart/add"][data-type="add-to-cart-form"]'
     );
 
     if (!this.#productForm) {
@@ -76,7 +76,7 @@ class PrintcartDesignerShopify {
     let variantId = null;
 
     const variantSelect = this.#productForm.querySelector(
-      'form[action="/cart/add"] input[name="id"]'
+      'form[action$="/cart/add"] input[name="id"]'
     );
 
     variantId = variantSelect?.value;
