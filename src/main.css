@@ -270,8 +270,6 @@
   cursor: pointer;
   margin-bottom: 8px;
   min-width: 74px;
-  font-size: initial;
-  text-wrap: nowrap;
 }
 
 #pc-btn {
@@ -291,6 +289,8 @@
   margin-bottom: 8px;
   min-width: 74px;
   margin-top: 10px;
+  font-size: initial;
+  text-wrap: nowrap;
 }
 
 .pc-primary-btn {

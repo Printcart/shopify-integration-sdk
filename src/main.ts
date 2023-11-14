@@ -585,9 +585,6 @@ class PrintcartDesignerShopify {
 
       const btnSubmitElement = cartForm?.querySelector('button[type="submit"]');
 
-      console.log('Printcart log cartForm:', cartForm);
-      console.log('Printcart log btnSubmit:', btnSubmitElement);
-
       if (btnSubmitElement) {
         btnSubmitElement?.insertAdjacentElement("beforebegin", wrap);
       } else {
