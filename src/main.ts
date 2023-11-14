@@ -92,7 +92,7 @@ class PrintcartDesignerShopify {
 
   #initializeProductTools(variantId: string | null) {
     if (!variantId) {
-      const shopifyMetaData = window?.ShopifyAnalytics.meta;
+      const shopifyMetaData = window?.ShopifyAnalytics?.meta;
       variantId = shopifyMetaData?.selectedVariantId;
     }
 
@@ -139,7 +139,7 @@ class PrintcartDesignerShopify {
 
     if (modal) {
       modal.style.display = "flex";
-      document.body.classList.toggle("pc-overflow");
+      document.body.classList.add("pc-overflow");
     }
 
     const closeBtn = modal?.querySelector("#pc-select_close-btn");
@@ -151,8 +151,9 @@ class PrintcartDesignerShopify {
 
     if (modal) {
       modal.style.display = "none";
-      document.body.classList.toggle("pc-overflow");
     }
+
+    document.body.classList.remove("pc-overflow");
   }
 
   #registerCloseModal() {
@@ -167,7 +168,12 @@ class PrintcartDesignerShopify {
 
     window.addEventListener("keydown", handleClose);
     closeModalBtn?.addEventListener("click", () => this.#closeModal());
-    backdropCloseModal?.addEventListener("click", () => this.#closeModal());
+    backdropCloseModal?.addEventListener("click", () => {
+      const iframeWrap = document.getElementById("pc-designer-iframe-wrapper");
+      if (iframeWrap?.style.visibility !== "visible") {
+        this.#closeModal();
+      }
+    });
   }
 
   #openSelectModal() {
@@ -237,6 +243,7 @@ class PrintcartDesignerShopify {
         this.#closeModal();
 
         this.#designerInstance.render();
+        document.body.classList.add("pc-overflow");
       }
     };
 
@@ -245,6 +252,7 @@ class PrintcartDesignerShopify {
         this.#closeModal();
 
         this.#uploaderInstance.open();
+        document.body.classList.add("pc-overflow");
       }
     };
 
@@ -471,6 +479,10 @@ class PrintcartDesignerShopify {
         this.#designerInstance.close();
       });
 
+      this.#designerInstance.on("closed", () => {
+        document.body.classList.remove("pc-overflow");
+      });
+
       this.#designerInstance.on("edit-success", (data: Data) => {
         if (!data.design_image.url) return;
 
@@ -568,7 +580,7 @@ class PrintcartDesignerShopify {
         : "Start Design";
       wrap.appendChild(button);
 
-      cartForm?.insertAdjacentElement('afterend', wrap);
+      cartForm?.insertAdjacentElement("afterend", wrap);
     }
 
     if (button && button instanceof HTMLButtonElement)
