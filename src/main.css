@@ -95,13 +95,15 @@
   width: 50%;
   padding: 10px;
   background: none;
-  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.1)) drop-shadow(0 1px 1px rgb(0 0 0 / 0.06));
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.1))
+    drop-shadow(0 1px 1px rgb(0 0 0 / 0.06));
   transition: all 0.2s;
   cursor: pointer;
 }
 
 .pc-select_btn:hover {
-  filter: drop-shadow(0 10px 8px rgb(0 0 0 / 0.04)) drop-shadow(0 4px 3px rgb(0 0 0 / 0.1));
+  filter: drop-shadow(0 10px 8px rgb(0 0 0 / 0.04))
+    drop-shadow(0 4px 3px rgb(0 0 0 / 0.1));
 }
 
 .pc-select_btn .pc-select_btn_img {
@@ -268,6 +270,8 @@
   cursor: pointer;
   margin-bottom: 8px;
   min-width: 74px;
+  font-size: initial;
+  text-wrap: nowrap;
 }
 
 #pc-btn {
@@ -370,7 +374,6 @@
 }
 
 @media only screen and (max-width: 600px) {
-
   /* CSS for other than iOS devices */
   @supports not (-webkit-touch-callout: none) {
     .pc-select_btn {
