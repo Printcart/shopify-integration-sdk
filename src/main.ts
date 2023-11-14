@@ -345,7 +345,8 @@ class PrintcartDesignerShopify {
       btn.innerHTML = this.options?.removeUploaderBtnText
         ? this.options.removeUploaderBtnText
         : "Remove";
-      btn.onclick = () => {
+      btn.onclick = (e) => {
+        e.preventDefault();
         const newIds = input.value
           .split(",")
           .filter((id) => id !== design.data.id);
@@ -425,14 +426,16 @@ class PrintcartDesignerShopify {
       const editBtn = document.createElement("button");
       editBtn.className = "pc-btn pc-primary-btn";
       editBtn.innerHTML = "Edit";
-      editBtn.onclick = () => {
+      editBtn.onclick = (e) => {
+        e.preventDefault();
         self.#designerInstance.editDesign(design.id);
       };
 
       const removeBtn = document.createElement("button");
       removeBtn.className = "pc-btn pc-danger-btn";
       removeBtn.innerHTML = "Remove";
-      removeBtn.onclick = () => {
+      removeBtn.onclick = (e) => {
+        e.preventDefault();
         const newIds = input.value.split(",").filter((id) => id !== design.id);
 
         input.value = newIds.join();
@@ -580,11 +583,18 @@ class PrintcartDesignerShopify {
         : "Start Design";
       wrap.appendChild(button);
 
-      cartForm?.insertAdjacentElement("afterend", wrap);
+      const btnSubmitElement = cartForm?.querySelector('button[type="submit"]');
+
+      if (btnSubmitElement) {
+        btnSubmitElement?.insertAdjacentElement("beforebegin", wrap);
+      } else {
+        cartForm?.insertAdjacentElement("afterend", wrap);
+      }
     }
 
     if (button && button instanceof HTMLButtonElement)
-      button.onclick = () => {
+      button.onclick = (e) => {
+        e.preventDefault();
         if (this.#designerInstance && !this.#uploaderInstance) {
           this.#designerInstance.render();
         }
