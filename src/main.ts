@@ -31,6 +31,12 @@ type Data = {
   };
 };
 
+type StoreDetail = {
+  data: {
+    language: string;
+  }
+}
+
 class PrintcartDesignerShopify {
   #apiUrl: string;
   token: string | null;
@@ -51,7 +57,7 @@ class PrintcartDesignerShopify {
 
     this.#apiUrl = import.meta.env.VITE_API_URL
       ? import.meta.env.VITE_API_URL
-      : "https://api.printcart.com/v1/integration/shopify/products";
+      : "https://api.printcart.com/v1/";
 
     this.#designerUrl = import.meta.env.VITE_CUSTOMIZER_URL
       ? import.meta.env.VITE_CUSTOMIZER_URL
@@ -86,6 +92,9 @@ class PrintcartDesignerShopify {
 
       this.#initializeProductTools(variantId);
     });
+
+    // Language
+    this.#language();
 
     this.#initializeProductTools(variantId);
   }
@@ -184,7 +193,7 @@ class PrintcartDesignerShopify {
       <button aria-label="Close" id="pc-select_close-btn"><span data-modal-x></span></button>
       <div class="pc-select-wrap" id="pc-content-overlay">
         <div class="pc-select-inner">
-          <div id="pc-select_header">Choose a way to design this product</div>
+          <div id="pc-select_header" data-i18n="pc_select_header.title"></div>
           <div id="pc-select_container">
             <button class="pc-select_btn" id="pc-select_btn_upload">
               <div aria-hidden="true" class="pc-select_btn_wrap">
@@ -195,15 +204,15 @@ class PrintcartDesignerShopify {
                 </div>
                 <div class="pc-select_btn_content">
                   <div class="pc-select_btn_content_inner">
-                    <h2 class="pc-title">Upload a full design</h2>
+                    <h2 class="pc-title" data-i18n="upload_a_full_design"></h2>
                     <ul>
-                      <li>Have a complete design</li>
-                      <li>Have your own designer</li>
+                      <li data-i18n="have_a_complete_design"></li>
+                      <li data-i18n="have_your_own_design"></li>
                     </ul>
                   </div>
                 </div>
               </div>
-              <div class="visually-hidden">Upload Design file</div>
+              <div class="visually-hidden" data-i18n="upload_design_file"></div>
             </button>
             <button class="pc-select_btn" id="pc-select_btn_design">
               <div aria-hidden="true" class="pc-select_btn_wrap">
@@ -214,15 +223,15 @@ class PrintcartDesignerShopify {
                 </div>
                 <div class="pc-select_btn_content">
                   <div class="pc-select_btn_content_inner">
-                    <h2 class="pc-title">Design here online</h2>
+                    <h2 class="pc-title" data-i18n="design_here_online"></h2>
                     <ul>
-                      <li>Already have your concept</li>
-                      <li>Customize every details</li>
+                      <li data-i18n="already_have_a_design"></li>
+                      <li data-i18n="customize_every_details"></li>
                     </ul>
                   </div>
                 </div>
               </div>
-              <div class="visually-hidden">Upload Design file</div>
+              <div class="visually-hidden" data-i18n="upload_design_file"></div>
             </button>
           </div>
         </div>
@@ -532,7 +541,7 @@ class PrintcartDesignerShopify {
 
   async #getPrintcartProduct(variantId: string) {
     try {
-      const printcartApiUrl = `${this.#apiUrl}/${variantId}`;
+      const printcartApiUrl = `${this.#apiUrl}integration/shopify/products/${variantId}`;
 
       const token = this.token;
 
@@ -549,6 +558,34 @@ class PrintcartDesignerShopify {
       const product = await printcartPromise.json();
 
       return product;
+    } catch (error) {
+      //@ts-ignore
+      console.error(
+        "There has been a problem with your fetch operation:",
+        error
+      );
+    }
+  }
+
+  async #getStoreDetail() {
+    try {
+      const printcartApiUrl = `${this.#apiUrl}stores/store-details`;
+
+      const token = this.token;
+      if (!token) {
+        throw new Error("Missing Printcart Unauth Token");
+      }
+
+      const printcartPromise = await fetch(printcartApiUrl, {
+        headers: {
+          "X-PrintCart-Unauth-Token": token,
+        },
+      });
+
+      const storeDetail: StoreDetail = await printcartPromise.json();
+
+      return storeDetail;
+
     } catch (error) {
       //@ts-ignore
       console.error(
@@ -607,6 +644,121 @@ class PrintcartDesignerShopify {
           this.#openModal();
         }
       };
+  }
+
+  async #language() {
+    // List of available locales
+    const availableLocales: string[] = ['en', 'es'];
+
+    // Default locale.
+    let defaultLanguage: any = 'en';
+
+    // Get store detail
+    await this.#getStoreDetail()
+      .then((res: any) => {
+        if (res.data.language === "en" || res.data.language === "es") {
+          localStorage.setItem('pc_lang', res.data.language);
+          return defaultLanguage = localStorage.getItem('pc_lang');
+        }
+
+        localStorage.setItem('pc_lang', 'en');
+        return defaultLanguage = localStorage.getItem('pc_lang');
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+
+    // Manually detect users' language, strip languages such as `en-GB` to just `en`.
+    let language: string = (window.navigator.userLanguage || window.navigator.language).substr(0, 2);
+
+    // Set `pageLanguage` only if its available within our locales, otherwise default.
+    let pageLanguage: string = defaultLanguage;
+    if (availableLocales.includes(language)) {
+      pageLanguage = language;
+    }
+
+    // Locale translations.
+    interface ILocales {
+      [key: string]: {
+        [key: string]: string | {
+          [key: string]: string
+        }
+      }
+    }
+
+    const locales: ILocales = {
+      // EN
+      en: {
+        "pc_select_header": {
+          "title": "Choose a way to design this product"
+        },
+        "upload_a_full_design": "Upload a full design",
+        "upload_design_file": "Upload Design file",
+        "have_a_complete_design": "Have a complete design",
+        "have_your_own_design": "Have your own design",
+        "design_here_online": "Design here online",
+        "already_have_a_design": "Already have your concept",
+        "customize_every_details": "Customize every details"
+      },
+      // ES
+      es: {
+        "pc_select_header": {
+          "title": "Elija una forma de diseñar este producto"
+        },
+        "upload_a_full_design": "Sube tu diseño",
+        "upload_design_file": "Subir archivo de diseño",
+        "have_a_complete_design": "Tienes el diseño listo",
+        "have_your_own_design": "Tienes tu propio diseñador",
+        "design_here_online": "Diseña en linea aquí",
+        "already_have_a_design": "Ya tienes tu idea lista",
+        "customize_every_details": " Personaliza todos los detalles"
+      }
+    };
+
+    // Get all page elements to be translated.
+    const elements: NodeListOf<HTMLElement> = document.querySelectorAll('[data-i18n]');
+
+    // Get JSON object of translations.
+    const json = locales[pageLanguage];
+
+    // On each element, found the translation from JSON file & update.
+    elements.forEach((element: HTMLElement, index: number) => {
+      const key: string | null = element.getAttribute('data-i18n');
+      let text: string | null = key ? key.split('.').reduce((obj: any, i: string) => (obj ? obj[i] : null), json) : null;
+
+      // Does this text have any variables? (eg {something})
+      const variables: RegExpMatchArray | null = text ? text.match(/{(.*?)}/g) : null;
+      if (variables) {
+
+        // Iterate each variable in the text.
+        variables.forEach((variable: string) => {
+
+          // Filter all `data-*` attributes for this element to find the matching key.
+          Object.entries(element.dataset).filter(([key, value]) => {
+            if (`{${key}}` === variable) {
+              try {
+                // Attempt to run actual JavaScript code.
+                text = text ? text.replace(`${variable}`, new Function(`return (${value})`)()) : null;
+              } catch (error) {
+                // Probably just static text replacement.
+                text = text ? text.replace(`${variable}`, value) : null;
+              }
+            }
+          })
+        });
+      }
+
+      // Regular text replacement for given locale.
+      if (text) {
+        element.innerHTML = text;
+      }
+    });
+
+    // Set <html> tag lang attribute.
+    const htmlElement: HTMLElement | null = document.querySelector('html');
+    if (htmlElement) {
+      htmlElement.setAttribute('lang', pageLanguage);
+    }
   }
 }
 
