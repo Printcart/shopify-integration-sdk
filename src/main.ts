@@ -684,46 +684,25 @@ class PrintcartDesignerShopify {
   }
 
   async #language() {
-    // List of available locales
-    const availableLocales: string[] = ["en", "es"];
-
-    // Default locale.
     let defaultLanguage: any = "en";
-
-    // Get store detail
     await this.#getStoreDetail()
       .then((res: any) => {
         if (res.data.language === "en" || res.data.language === "es") {
           localStorage.setItem("pc_lang", res.data.language);
-          return (defaultLanguage = localStorage.getItem("pc_lang"));
+          return defaultLanguage = res.data.language;
         }
 
         localStorage.setItem("pc_lang", "en");
-        return (defaultLanguage = localStorage.getItem("pc_lang"));
+        return defaultLanguage = "en";
       })
       .catch((error) => {
         console.error(error);
       });
 
-    // Manually detect users' language, strip languages such as `en-GB` to just `en`.
-    let language: string = (
-      window.navigator.userLanguage || window.navigator.language
-    ).substr(0, 2);
+    const elements: NodeListOf<HTMLElement> = document.querySelectorAll("[data-i18n]");
 
-    // Set `pageLanguage` only if its available within our locales, otherwise default.
-    let pageLanguage: string = defaultLanguage;
-    if (availableLocales.includes(language)) {
-      pageLanguage = language;
-    }
+    const json = this.locales[defaultLanguage];
 
-    // Get all page elements to be translated.
-    const elements: NodeListOf<HTMLElement> =
-      document.querySelectorAll("[data-i18n]");
-
-    // Get JSON object of translations.
-    const json = this.locales[pageLanguage];
-
-    // On each element, found the translation from JSON file & update.
     elements.forEach((element: HTMLElement, index: number) => {
       const key: string | null = element.getAttribute("data-i18n");
       let text: string | null = key
@@ -732,18 +711,14 @@ class PrintcartDesignerShopify {
             .reduce((obj: any, i: string) => (obj ? obj[i] : null), json)
         : null;
 
-      // Does this text have any variables? (eg {something})
       const variables: RegExpMatchArray | null = text
         ? text.match(/{(.*?)}/g)
         : null;
       if (variables) {
-        // Iterate each variable in the text.
         variables.forEach((variable: string) => {
-          // Filter all `data-*` attributes for this element to find the matching key.
           Object.entries(element.dataset).filter(([key, value]) => {
             if (`{${key}}` === variable) {
               try {
-                // Attempt to run actual JavaScript code.
                 text = text
                   ? text.replace(
                       `${variable}`,
@@ -751,7 +726,6 @@ class PrintcartDesignerShopify {
                     )
                   : null;
               } catch (error) {
-                // Probably just static text replacement.
                 text = text ? text.replace(`${variable}`, value) : null;
               }
             }
@@ -759,13 +733,11 @@ class PrintcartDesignerShopify {
         });
       }
 
-      // Regular text replacement for given locale.
       if (text) {
         element.innerHTML = text;
       }
     });
 
-    // Set <html> tag lang attribute.
     const htmlElement: HTMLElement | null = document.querySelector("html");
     if (htmlElement) {
       htmlElement.setAttribute("lang", pageLanguage);
