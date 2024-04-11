@@ -437,7 +437,7 @@ class PrintcartDesignerShopify {
     );
 
     if (input) {
-      input.value += `,${ids.join()}`;
+      input.value = ids.join();
     } else {
       input = <HTMLInputElement>document.createElement("input");
       input.type = "hidden";
