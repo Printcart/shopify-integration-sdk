@@ -689,17 +689,18 @@ class PrintcartDesignerShopify {
       .then((res: any) => {
         if (res.data.language === "en" || res.data.language === "es") {
           localStorage.setItem("pc_lang", res.data.language);
-          return defaultLanguage = res.data.language;
+          return (defaultLanguage = res.data.language);
         }
 
         localStorage.setItem("pc_lang", "en");
-        return defaultLanguage = "en";
+        return (defaultLanguage = "en");
       })
       .catch((error) => {
         console.error(error);
       });
 
-    const elements: NodeListOf<HTMLElement> = document.querySelectorAll("[data-i18n]");
+    const elements: NodeListOf<HTMLElement> =
+      document.querySelectorAll("[data-i18n]");
 
     const json = this.locales[defaultLanguage];
 
@@ -726,7 +727,8 @@ class PrintcartDesignerShopify {
                     )
                   : null;
               } catch (error) {
-                text = text ? text.replace(`${variable}`, value) : null;
+                const nValue = value || "";
+                text = text ? text.replace(`${variable}`, nValue) : null;
               }
             }
           });
