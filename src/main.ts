@@ -740,7 +740,7 @@ class PrintcartDesignerShopify {
 
     const htmlElement: HTMLElement | null = document.querySelector("html");
     if (htmlElement) {
-      htmlElement.setAttribute("lang", pageLanguage);
+      htmlElement.setAttribute("lang", defaultLanguage);
     }
   }
 }
