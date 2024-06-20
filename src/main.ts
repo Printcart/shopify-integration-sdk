@@ -689,11 +689,13 @@ class PrintcartDesignerShopify {
       .then((res: any) => {
         if (res.data.language === "en" || res.data.language === "es") {
           localStorage.setItem("pc_lang", res.data.language);
-          return (defaultLanguage = res.data.language);
+          defaultLanguage = res.data.language;
+          return;
         }
 
         localStorage.setItem("pc_lang", "en");
-        return (defaultLanguage = "en");
+        defaultLanguage = "en";
+        return;
       })
       .catch((error) => {
         console.error(error);
@@ -704,7 +706,7 @@ class PrintcartDesignerShopify {
 
     const json = this.locales[defaultLanguage];
 
-    elements.forEach((element: HTMLElement, index: number) => {
+    elements.forEach((element: HTMLElement) => {
       const key: string | null = element.getAttribute("data-i18n");
       let text: string | null = key
         ? key
