@@ -137,8 +137,14 @@ class PrintcartDesignerShopify {
 
     if (!variantId) {
       const shopifyMetaData = window?.ShopifyAnalytics?.meta;
+      console.log(
+        "Printcart",
+        shopifyMetaData,
+        shopifyMetaData?.selectedVariantId
+      );
 
       _variantId = shopifyMetaData?.selectedVariantId;
+      console.log("Printcart", _variantId);
     }
 
     console.log("Printcart", _variantId);
