@@ -132,16 +132,12 @@ class PrintcartDesignerShopify {
     this.#initializeProductTools(variantId);
   }
 
-  #initializeProductTools(variantId: string | null) {
+  async #initializeProductTools(variantId: string | null) {
     let _variantId = variantId;
 
     if (!variantId) {
-      const shopifyMetaData = window?.ShopifyAnalytics?.meta;
-      console.log(
-        "Printcart",
-        shopifyMetaData,
-        shopifyMetaData?.selectedVariantId
-      );
+      const shopifyMetaData = await window?.ShopifyAnalytics?.meta;
+      console.log("Printcart", shopifyMetaData);
 
       _variantId = shopifyMetaData?.selectedVariantId;
       console.log("Printcart", _variantId);
