@@ -4,7 +4,7 @@
   "files": [
     "dist"
   ],
-  "version": "2.3.23",
+  "version": "2.3.24",
   "scripts": {
     "dev": "vite --port 3102",
     "build": "vite build",
