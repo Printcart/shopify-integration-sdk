@@ -114,9 +114,15 @@ class PrintcartDesignerShopify {
 
     let variantId = null;
 
-    const variantSelect = this.#productForm.querySelector(
+    let variantSelect = this.#productForm.querySelector(
       'form[action$="/cart/add"] input[name="id"]'
     );
+
+    if (!variantSelect) {
+      variantSelect = document.querySelector(
+        'form[action$="/cart/add"] input[name="id"]'
+      );
+    }
 
     variantId = variantSelect?.value;
 
@@ -132,22 +138,17 @@ class PrintcartDesignerShopify {
     this.#initializeProductTools(variantId);
   }
 
-  async #initializeProductTools(variantId: string | null) {
-    let _variantId = variantId;
-
+  #initializeProductTools(variantId: string | null) {
     if (!variantId) {
-      const _variantId = window?.ShopifyAnalytics?.meta?.selectedVariantId;
-
-      console.log("Printcart", _variantId);
+      const shopifyMetaData = window?.ShopifyAnalytics?.meta;
+      variantId = shopifyMetaData?.selectedVariantId;
     }
 
-    console.log("Printcart", _variantId);
-
-    if (!_variantId) {
+    if (!variantId) {
       throw new Error("Can not find product variant ID");
     }
 
-    this.#getPrintcartProduct(_variantId).then((res) => {
+    this.#getPrintcartProduct(variantId).then((res) => {
       this.productId = res.data.id;
 
       const isDesignEnabled = res.data.enable_design;
