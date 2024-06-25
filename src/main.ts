@@ -135,8 +135,13 @@ class PrintcartDesignerShopify {
   #initializeProductTools(variantId: string | null) {
     if (!variantId) {
       const shopifyMetaData = window?.ShopifyAnalytics?.meta;
+      console.log(shopifyMetaData);
+
       variantId = shopifyMetaData?.selectedVariantId;
     }
+
+    console.log("Printcart", window);
+    console.log("Printcart", variantId);
 
     if (!variantId) {
       throw new Error("Can not find product variant ID");
