@@ -133,21 +133,21 @@ class PrintcartDesignerShopify {
   }
 
   #initializeProductTools(variantId: string | null) {
+    let _variantId = variantId;
+
     if (!variantId) {
       const shopifyMetaData = window?.ShopifyAnalytics?.meta;
-      console.log(shopifyMetaData);
 
-      variantId = shopifyMetaData?.selectedVariantId;
+      _variantId = shopifyMetaData?.selectedVariantId;
     }
 
-    console.log("Printcart", window);
-    console.log("Printcart", variantId);
+    console.log("Printcart", _variantId);
 
-    if (!variantId) {
+    if (!_variantId) {
       throw new Error("Can not find product variant ID");
     }
 
-    this.#getPrintcartProduct(variantId).then((res) => {
+    this.#getPrintcartProduct(_variantId).then((res) => {
       this.productId = res.data.id;
 
       const isDesignEnabled = res.data.enable_design;
