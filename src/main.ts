@@ -35,6 +35,11 @@ type Data = {
   preview_image: {
     url?: string;
   };
+  preview: {
+    design?: {
+      url?: string;
+    };
+  };
 };
 
 type StoreDetail = {
@@ -465,44 +470,62 @@ class PrintcartDesignerShopify {
     previewWrap.className = "pc-preview-wrap";
 
     data.forEach((design) => {
-      if (!design.design_image.url) return;
+      if (!design.preview_image.url) return;
 
-      const preview = document.createElement("div");
-      preview.className = "pc-preview";
-      preview.setAttribute("data-pc-design-id", design.id);
+      const image: HTMLImageElement | null = previewWrap.querySelector(
+        ".pc-preview[data-pc-design-id='" +
+          design.id +
+          "'] img.pc-uploader-image"
+      );
 
-      const editBtn = document.createElement("button");
-      editBtn.className = "pc-btn pc-primary-btn";
-      editBtn.innerHTML = "Edit";
-      editBtn.onclick = (e) => {
-        e.preventDefault();
-        self.#designerInstance.editDesign(design.id);
-      };
+      if (image) {
+        const designSrc =
+          design.preview?.design?.url || design.preview_image.url;
 
-      const removeBtn = document.createElement("button");
-      removeBtn.className = "pc-btn pc-danger-btn";
-      removeBtn.innerHTML = "Remove";
-      removeBtn.onclick = (e) => {
-        e.preventDefault();
-        const newIds = input.value.split(",").filter((id) => id !== design.id);
+        image.src = designSrc || "";
+      } else {
+        const preview = document.createElement("div");
+        preview.className = "pc-preview";
 
-        input.value = newIds.join();
+        preview.setAttribute("data-pc-design-id", design.id);
 
-        preview.remove();
-      };
+        const editBtn = document.createElement("button");
+        editBtn.className = "pc-btn pc-primary-btn";
+        editBtn.innerHTML = "Edit";
+        editBtn.onclick = (e) => {
+          e.preventDefault();
+          self.#designerInstance.editDesign(design.id);
+        };
 
-      const image = document.createElement("img");
-      image.src = design.preview_image?.url || design.design_image.url;
-      image.className = "pc-uploader-image";
+        const removeBtn = document.createElement("button");
+        removeBtn.className = "pc-btn pc-danger-btn";
+        removeBtn.innerHTML = "Remove";
+        removeBtn.onclick = (e) => {
+          e.preventDefault();
+          const newIds = input.value
+            .split(",")
+            .filter((id) => id !== design.id);
 
-      const overlay = document.createElement("div");
-      overlay.className = "pc-preview-overlay";
+          input.value = newIds.join();
 
-      overlay.appendChild(editBtn);
-      overlay.appendChild(removeBtn);
-      preview.appendChild(overlay);
-      preview.appendChild(image);
-      previewWrap.appendChild(preview);
+          preview.remove();
+        };
+
+        const image = document.createElement("img");
+        const designSrc =
+          design.preview?.design?.url || design.preview_image.url;
+        image.src = designSrc;
+        image.className = "pc-uploader-image";
+
+        const overlay = document.createElement("div");
+        overlay.className = "pc-preview-overlay";
+
+        overlay.appendChild(editBtn);
+        overlay.appendChild(removeBtn);
+        preview.appendChild(overlay);
+        preview.appendChild(image);
+        previewWrap.appendChild(preview);
+      }
     });
 
     const wrap = document.querySelector("div#pc-designer_wrap");
@@ -535,7 +558,9 @@ class PrintcartDesignerShopify {
       });
 
       this.#designerInstance.on("edit-success", (data: Data) => {
-        if (!data.design_image.url) return;
+        const designSrc = data.preview?.design?.url || data.preview_image.url;
+
+        if (!designSrc) return;
 
         const img = document.querySelector(
           `[data-pc-design-id="${data.id}"] img`
@@ -545,7 +570,7 @@ class PrintcartDesignerShopify {
           throw new Error("Can't find image element");
         }
 
-        img.src = data.design_image.url;
+        img.src = designSrc;
 
         const callback = this.options?.onDesignEditSuccess;
 
@@ -672,7 +697,7 @@ class PrintcartDesignerShopify {
       }
     }
 
-    if (button && button instanceof HTMLButtonElement)
+    if (button && button instanceof HTMLButtonElement) {
       button.onclick = (e) => {
         e.preventDefault();
         if (this.#designerInstance && !this.#uploaderInstance) {
@@ -687,6 +712,7 @@ class PrintcartDesignerShopify {
           this.#openModal();
         }
       };
+    }
   }
 
   async #language() {
