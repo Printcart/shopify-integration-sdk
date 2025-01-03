@@ -1,3 +1,5 @@
+"use strict";
+
 //@ts-ignore
 import PrintcartDesigner from "@printcart/design-tool-sdk";
 //@ts-ignore
@@ -69,7 +71,7 @@ class PrintcartDesignerShopify {
 
     this.#apiUrl = import.meta.env.VITE_API_URL
       ? import.meta.env.VITE_API_URL
-      : "https://api.printcart.com/v1/";
+      : "http://api.printcart.loc/public/v1/";
 
     this.#designerUrl = import.meta.env.VITE_CUSTOMIZER_URL
       ? import.meta.env.VITE_CUSTOMIZER_URL
@@ -91,6 +93,9 @@ class PrintcartDesignerShopify {
         design_here_online: "Design here online",
         already_have_a_design: "Already have your concept",
         customize_every_details: "Customize every details",
+        request_us_to_design: "Request Us to Design",
+        share_your_idea: "Share your ideas in a brief",
+        our_designers_do_st: "Our designers will craft a custom design for you",
       },
       // ES
       es: {
@@ -103,6 +108,9 @@ class PrintcartDesignerShopify {
         design_here_online: "Diseña en linea aquí",
         already_have_a_design: "Ya tienes tu idea lista",
         customize_every_details: " Personaliza todos los detalles",
+        request_us_to_design: "Request Us to Design",
+        share_your_idea: "Share your ideas in a brief",
+        our_designers_do_st: "Our designers will craft a custom design for you",
       },
     };
 
@@ -158,6 +166,7 @@ class PrintcartDesignerShopify {
 
       const isDesignEnabled = res.data.enable_design;
       const isUploadEnabled = res.data.enable_upload;
+      const isQuotationRequest = res.data.enable_request_quote;
 
       if (isDesignEnabled) {
         this.#designerInstance = new PrintcartDesigner({
@@ -181,7 +190,14 @@ class PrintcartDesignerShopify {
         this.#registerUploaderEvents();
       }
 
-      if (isUploadEnabled || isDesignEnabled) {
+      if (isQuotationRequest) {
+        this.#initializeQuoteRequest({
+          token: this.token || "",
+          product: res.data,
+        });
+      }
+
+      if (isUploadEnabled || isDesignEnabled || isQuotationRequest) {
         this.#createBtn();
       }
     });
@@ -232,6 +248,7 @@ class PrintcartDesignerShopify {
   #openSelectModal() {
     const uploadImgSrc = "https://files.printcart.com/common/upload.svg";
     const designImgSrc = "https://files.printcart.com/common/design.svg";
+    const quoteImgSrc = "https://files.printcart.com/common/quote.svg";
 
     const inner = `
       <button aria-label="Close" id="pc-select_close-btn"><span data-modal-x></span></button>
@@ -277,6 +294,25 @@ class PrintcartDesignerShopify {
               </div>
               <div class="visually-hidden" data-i18n="upload_design_file"></div>
             </button>
+            <button class="pc-select_btn" id="pc-select_btn_quote_request">
+              <div aria-hidden="true" class="pc-select_btn_wrap">
+                <div class="pc-select_btn_img">
+                  <div class="pc-select_btn_img_inner">
+                    <img src="${quoteImgSrc}" alt="Printcart Quotation Request" />
+                  </div>
+                </div>
+                <div class="pc-select_btn_content">
+                  <div class="pc-select_btn_content_inner">
+                    <h2 class="pc-title" data-i18n="request_us_to_design"></h2>
+                    <ul>
+                      <li data-i18n="share_your_idea"></li>
+                      <li data-i18n="our_designers_do_st"></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              <div class="visually-hidden" data-i18n="upload_design_file"></div>
+            </button>
           </div>
         </div>
       </div>
@@ -309,11 +345,17 @@ class PrintcartDesignerShopify {
       }
     };
 
+    const quoteRequest = () => {
+      this.#quotationRequestOpen();
+    };
+
     const uploadBtn = document.getElementById("pc-select_btn_upload");
     const designBtn = document.getElementById("pc-select_btn_design");
+    const quoteBtn = document.getElementById("pc-select_btn_quote_request");
 
     if (uploadBtn) uploadBtn?.addEventListener("click", upload);
     if (designBtn) designBtn?.addEventListener("click", design);
+    if (quoteBtn) quoteBtn?.addEventListener("click", quoteRequest);
   }
 
   #modalTrap() {
@@ -353,7 +395,7 @@ class PrintcartDesignerShopify {
     link.rel = "stylesheet";
     link.href = `${sdkUrl}/style.css`;
 
-    document.head.appendChild(link);
+    // document.head.appendChild(link);
   }
 
   #handleUploadSuccess(data: [DataWrap]) {
@@ -582,6 +624,7 @@ class PrintcartDesignerShopify {
   }
 
   #getUnauthToken() {
+    return "ff584da7c25c3049d17a3f1730a0b81b8405a370218aac6a6b5fcec9a305444fg";
     const src = this.#getScriptSrc();
 
     const url = new URL(src);
@@ -594,6 +637,7 @@ class PrintcartDesignerShopify {
   }
 
   #getScriptSrc() {
+    return "http://localhost:3102/dist/main.js?shopT=8708a5e51a013a6a223c81a4bdad8466fea9ef7abd077fc9f914b2cedf551eb6";
     const isDev = import.meta.env.MODE === "development";
 
     const src = isDev
@@ -713,6 +757,119 @@ class PrintcartDesignerShopify {
         }
       };
     }
+  }
+
+  #openQRModal() {
+    const modal = document.getElementById("pc-quotation-request_wrap");
+
+    if (modal) {
+      modal.style.display = "flex";
+      document.body.classList.add("pc-overflow");
+    }
+
+    const closeBtn = modal?.querySelector("#pc-qr_close-btn");
+    if (closeBtn && closeBtn instanceof HTMLButtonElement) closeBtn.focus();
+  }
+
+  #closeQRModal() {
+    const modal = document.getElementById("pc-quotation-request_wrap");
+
+    if (modal) {
+      modal.style.display = "none";
+    }
+
+    document.body.classList.remove("pc-overflow");
+  }
+
+  #initializeQuoteRequest({ token, product }: { token: string; product: any }) {
+    const inner = `
+      <button aria-label="Close" id="pc-qr_close-btn"><span data-modal-x></span></button>
+      <div class="pc-select-wrap" id="pc-qr-content-overlay">
+        <div class="pc-select-inner">
+          <div id="pc-select_header">Send the request</div>
+          <div id="pc-select_container">
+          <div id="quotation-request-form">
+            <p>
+              <label for="name">Name:</label>
+              <input type="text" name="name" required />
+            </p>
+            <p>
+              <label for="email">Email:</label>
+              <input type="email" name="email" required />
+            </p>
+            <p>
+              <label for="phone">Phone:</label>
+              <input type="tel" name="phone" />
+            </p>
+            <p>
+              <label for="whatsapp">WhatsApp:</label>
+              <input type="tel" name="whatsapp" />
+            </p>
+            <p>
+              <label for="note">Note:</label>
+              <textarea name="note"></textarea>
+            </p>
+            <p>
+              <label for="file">File:</label>
+              <input type="file" name="file" />
+            </p>
+            <p>
+              <button id="pc-submit-quota" type="submit">Submit</button>
+            </p>
+          </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    const wrap = document.createElement("div");
+    wrap.id = "pc-quotation-request_wrap";
+    wrap.setAttribute("role", "dialog");
+    wrap.setAttribute("aria-modal", "true");
+    wrap.setAttribute("tabIndex", "-1");
+    wrap.innerHTML = inner;
+    document.body.appendChild(wrap);
+
+    const closeModalBtn = document.getElementById("pc-qr_close-btn");
+
+    const btnSubmitEl = document.getElementById(
+      "pc-submit-quota"
+    ) as HTMLButtonElement;
+
+    const handleClose = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        this.#closeQRModal();
+      }
+    };
+
+    window.addEventListener("keydown", handleClose);
+    closeModalBtn?.addEventListener("click", () => this.#closeQRModal());
+
+    btnSubmitEl?.addEventListener("click", () =>
+      this.#handleQuotationRequest()
+    );
+  }
+
+  #handleQuotationRequest() {
+    const nameEl = document.getElementsByName("name")[0] as HTMLInputElement;
+    const phoneEl = document.getElementsByName("phone")[0] as HTMLInputElement;
+    const whatsappEl = document.getElementsByName(
+      "whatsapp"
+    )[0] as HTMLInputElement;
+    const emailEl = document.getElementsByName("email")[0] as HTMLInputElement;
+    const noteEl = document.getElementsByName("note")[0] as HTMLInputElement;
+    const fileEl = document.getElementsByName("file")[0] as HTMLInputElement;
+    const name = nameEl.value;
+    const phone = phoneEl.value;
+    const whatsapp = whatsappEl.value;
+    const email = emailEl.value;
+    const note = noteEl.value;
+    const file = fileEl.files;
+    console.log(name, phone, whatsapp, email, note, file);
+  }
+
+  #quotationRequestOpen() {
+    this.#openQRModal();
   }
 
   async #language() {
