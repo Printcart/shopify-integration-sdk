@@ -19,6 +19,16 @@ interface IOptions {
   designerOptions: {};
 }
 
+interface TPostQuotationRequest {
+  name: string;
+  product_id: string;
+  email: string;
+  phone: string;
+  whatsapp: string;
+  note: string;
+  design_file: any;
+}
+
 interface ILocales {
   [key: string]: {
     [key: string]: string;
@@ -191,10 +201,7 @@ class PrintcartDesignerShopify {
       }
 
       if (isQuotationRequest) {
-        this.#initializeQuoteRequest({
-          token: this.token || "",
-          product: res.data,
-        });
+        this.#initializeQuoteRequest(res.data);
       }
 
       if (isUploadEnabled || isDesignEnabled || isQuotationRequest) {
@@ -677,6 +684,90 @@ class PrintcartDesignerShopify {
     }
   }
 
+  async #createQuotationRequest(object: TPostQuotationRequest): Promise<any> {
+    const loader = document.getElementsByClassName("pc-handle-overlay");
+    const alertSuccess = document.getElementsByClassName("pc-alert-success");
+    const alertDanger = document.getElementsByClassName("pc-alert-danger");
+    if (alertSuccess[0]?.classList) {
+      alertSuccess[0].classList.remove("active");
+    }
+    if (alertDanger[0]?.classList) {
+      alertDanger[0].classList.remove("active");
+    }
+    if (loader[0]?.classList) {
+      loader[0].classList.add("active");
+    }
+
+    const toggleLoader = (isTrue = false, mess = "") => {
+      if (loader[0]?.classList) {
+        loader[0].classList.remove("active");
+      }
+
+      if (isTrue && alertSuccess[0]?.classList) {
+        alertSuccess[0].classList.add("active");
+        return;
+      }
+
+      if (alertDanger[0]?.classList) {
+        alertDanger[0].classList.add("active");
+        alertDanger[0].textContent = mess;
+      }
+    };
+
+    try {
+      const printcartApiUrl = `${this.#apiUrl}quotation-requests`;
+
+      if (!object.name || !object.email) {
+        toggleLoader(false, "Name and Email are required");
+        return;
+      }
+
+      const token = this.token || "";
+      if (!token) {
+        toggleLoader(false, "Missing Printcart Unauth Token");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("name", object.name);
+      formData.append("product_id", object.product_id);
+      formData.append("email", object.email);
+      formData.append("phone", object.phone);
+      formData.append("whatsapp", object.whatsapp);
+      formData.append("note", object.note);
+      if (object.design_file) {
+        formData.append("design_file", object.design_file);
+      }
+
+      fetch(printcartApiUrl, {
+        method: "POST",
+        headers: {
+          "X-PrintCart-Unauth-Token": token,
+        },
+        body: formData,
+      }).then((res) => {
+        if (!res.ok) {
+          res.json().then((error) => {
+            toggleLoader(false, error.message);
+          });
+          return;
+        }
+
+        const form = document.getElementById(
+          "quotation-request-form"
+        ) as HTMLFormElement;
+        form.reset();
+
+        toggleLoader(true);
+      });
+    } catch (error) {
+      //@ts-ignore
+
+      toggleLoader(false, "Failed to create quotation request");
+      return;
+    }
+  }
+
   async #getStoreDetail() {
     try {
       const printcartApiUrl = `${this.#apiUrl}stores/store-details`;
@@ -781,42 +872,64 @@ class PrintcartDesignerShopify {
     document.body.classList.remove("pc-overflow");
   }
 
-  #initializeQuoteRequest({ token, product }: { token: string; product: any }) {
+  #initializeQuoteRequest(product: any) {
     const inner = `
       <button aria-label="Close" id="pc-qr_close-btn"><span data-modal-x></span></button>
-      <div class="pc-select-wrap" id="pc-qr-content-overlay">
+      <div id="pc-qr-content-overlay">
         <div class="pc-select-inner">
-          <div id="pc-select_header">Send the request</div>
           <div id="pc-select_container">
-          <div id="quotation-request-form">
-            <p>
-              <label for="name">Name:</label>
-              <input type="text" name="name" required />
-            </p>
-            <p>
-              <label for="email">Email:</label>
-              <input type="email" name="email" required />
-            </p>
-            <p>
-              <label for="phone">Phone:</label>
-              <input type="tel" name="phone" />
-            </p>
-            <p>
-              <label for="whatsapp">WhatsApp:</label>
-              <input type="tel" name="whatsapp" />
-            </p>
-            <p>
-              <label for="note">Note:</label>
-              <textarea name="note"></textarea>
-            </p>
-            <p>
-              <label for="file">File:</label>
-              <input type="file" name="file" />
-            </p>
-            <p>
-              <button id="pc-submit-quota" type="submit">Submit</button>
-            </p>
-          </div>
+            <form id="quotation-request-form">
+              <div class="pc-card_header">
+                <h3>Send the request</h3>
+                <div class="pc-alert pc-alert-success">
+                  <div class="success__title">Your quotation request has been successfully created</div>
+                </div>
+                <div class="pc-alert pc-alert-danger">
+                  <div class="success__title">Something went wrong. Please try again later.</div>
+                </div>
+              </div>
+              <div class="pc-card_body">
+                <div>
+                  <label for="name">Name<span class="pc-field-require">*</span></label>
+                  <input type="text" name="name" required />
+                </div>
+                <div>
+                  <label for="email">Email<span class="pc-field-require">*</span></label>
+                  <input type="email" name="email" required />
+                </div>
+                <div>
+                  <label for="phone">Phone</label>
+                  <input type="tel" name="phone" />
+                </div>
+                <div>
+                  <label for="whatsapp">WhatsApp</label>
+                  <input type="tel" name="whatsapp" />
+                </div>
+                <div>
+                  <label for="note">Note</label>
+                  <textarea name="note"></textarea>
+                </div>
+                <div>
+                  <label for="file">File</label>
+                  <input type="file" name="file" />
+                </div>
+              </div>
+              <div class="pc-card_footer">
+                  <button id="pc-submit-quota" type="submit">Submit</button>
+              </div>
+              <div class="pc-handle-overlay">
+                <div class="pc-boxes">
+                  <div class="pc-box"><div></div><div></div><div></div><div></div>
+                  </div>
+                  <div class="pc-box"><div></div><div></div><div></div><div></div>
+                  </div>
+                  <div class="pc-box"><div></div><div></div><div></div><div></div>
+                  </div>
+                  <div class="pc-box"><div></div><div></div><div></div><div></div>
+                  </div>
+                </div>
+              </div>
+            </form>
           </div>
         </div>
       </div>
@@ -845,12 +958,22 @@ class PrintcartDesignerShopify {
     window.addEventListener("keydown", handleClose);
     closeModalBtn?.addEventListener("click", () => this.#closeQRModal());
 
-    btnSubmitEl?.addEventListener("click", () =>
-      this.#handleQuotationRequest()
+    btnSubmitEl?.addEventListener("click", (e) =>
+      this.#handleQuotationRequest(product?.id, e)
     );
   }
 
-  #handleQuotationRequest() {
+  #handleQuotationRequest(productId: string, e: any) {
+    e.preventDefault();
+
+    const form = document.getElementById(
+      "quotation-request-form"
+    ) as HTMLFormElement;
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+
     const nameEl = document.getElementsByName("name")[0] as HTMLInputElement;
     const phoneEl = document.getElementsByName("phone")[0] as HTMLInputElement;
     const whatsappEl = document.getElementsByName(
@@ -859,13 +982,19 @@ class PrintcartDesignerShopify {
     const emailEl = document.getElementsByName("email")[0] as HTMLInputElement;
     const noteEl = document.getElementsByName("note")[0] as HTMLInputElement;
     const fileEl = document.getElementsByName("file")[0] as HTMLInputElement;
-    const name = nameEl.value;
-    const phone = phoneEl.value;
-    const whatsapp = whatsappEl.value;
-    const email = emailEl.value;
-    const note = noteEl.value;
-    const file = fileEl.files;
-    console.log(name, phone, whatsapp, email, note, file);
+    const files: any = fileEl.files;
+
+    const quote = {
+      name: nameEl.value || "",
+      email: emailEl.value || "",
+      phone: phoneEl.value || "",
+      whatsapp: whatsappEl.value || "",
+      note: noteEl.value || "",
+      design_file: files ? files[0] : null,
+      product_id: productId,
+    };
+
+    this.#createQuotationRequest(quote);
   }
 
   #quotationRequestOpen() {
