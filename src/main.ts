@@ -76,13 +76,14 @@ class PrintcartDesignerShopify {
   constructor() {
     this.token = this.#getUnauthToken();
     this.productId = null;
+    this.#quotationRequestInstance = false;
 
     // @ts-ignore
     this.options = window.PrintcartDesignerShopifyOptions;
 
     this.#apiUrl = import.meta.env.VITE_API_URL
       ? import.meta.env.VITE_API_URL
-      : "http://api.printcart.loc/public/v1/";
+      : "https://api.printcart.com/v1/";
 
     this.#designerUrl = import.meta.env.VITE_CUSTOMIZER_URL
       ? import.meta.env.VITE_CUSTOMIZER_URL
@@ -317,9 +318,6 @@ class PrintcartDesignerShopify {
       </div>
       <div class="visually-hidden" data-i18n="upload_design_file"></div>
     </button>`;
-    console.log(this.#designerInstance);
-    console.log(this.#uploaderInstance);
-    console.log(this.#quotationRequestInstance);
 
     const inner = `
       <button aria-label="Close" id="pc-select_close-btn"><span data-modal-x></span></button>
@@ -412,7 +410,7 @@ class PrintcartDesignerShopify {
     link.rel = "stylesheet";
     link.href = `${sdkUrl}/style.css`;
 
-    // document.head.appendChild(link);
+    document.head.appendChild(link);
   }
 
   #handleUploadSuccess(data: [DataWrap]) {
@@ -641,7 +639,6 @@ class PrintcartDesignerShopify {
   }
 
   #getUnauthToken() {
-    return "ff584da7c25c3049d17a3f1730a0b81b8405a370218aac6a6b5fcec9a305444fg";
     const src = this.#getScriptSrc();
 
     const url = new URL(src);
@@ -654,7 +651,6 @@ class PrintcartDesignerShopify {
   }
 
   #getScriptSrc() {
-    return "http://localhost:3102/dist/main.js?shopT=8708a5e51a013a6a223c81a4bdad8466fea9ef7abd077fc9f914b2cedf551eb6";
     const isDev = import.meta.env.MODE === "development";
 
     const src = isDev
