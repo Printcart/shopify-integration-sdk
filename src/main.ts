@@ -174,6 +174,9 @@ class PrintcartDesignerShopify {
       const isUploadEnabled = res.data.enable_upload;
       const isQuotationRequest = res.data.enable_request_quote;
 
+      // Language
+      this.#language();
+
       if (isDesignEnabled) {
         this.#designerInstance = new PrintcartDesigner({
           token: this.token,
@@ -208,8 +211,6 @@ class PrintcartDesignerShopify {
       this.#openSelectModal();
       this.#registerCloseModal();
       this.#modalTrap();
-      // Language
-      this.#language();
     });
   }
 
