@@ -1,3 +1,5 @@
+"use strict";
+
 //@ts-ignore
 import PrintcartDesigner from "@printcart/design-tool-sdk";
 //@ts-ignore
@@ -15,6 +17,16 @@ interface IOptions {
   onDesignCreateSuccess?: (data: [DataWrap] | [Data], ctx: any) => void;
   onDesignEditSuccess?: (data: Data, ctx: any) => void;
   designerOptions: {};
+}
+
+interface TPostQuotationRequest {
+  name: string;
+  product_id: string;
+  email: string;
+  phone: string;
+  whatsapp: string;
+  note: string;
+  design_file: any;
 }
 
 interface ILocales {
@@ -56,6 +68,7 @@ class PrintcartDesignerShopify {
   #designerUrl: string;
   #designerInstance: any;
   #uploaderInstance: any;
+  #quotationRequestInstance: boolean;
   #productForm: HTMLFormElement | null;
   #cartForm: HTMLFormElement | null;
   locales: ILocales;
@@ -63,6 +76,7 @@ class PrintcartDesignerShopify {
   constructor() {
     this.token = this.#getUnauthToken();
     this.productId = null;
+    this.#quotationRequestInstance = false;
 
     // @ts-ignore
     this.options = window.PrintcartDesignerShopifyOptions;
@@ -91,6 +105,9 @@ class PrintcartDesignerShopify {
         design_here_online: "Design here online",
         already_have_a_design: "Already have your concept",
         customize_every_details: "Customize every details",
+        request_us_to_design: "Request Us to Design",
+        share_your_idea: "Share your ideas in a brief",
+        our_designers_do_st: "Our designers will craft a custom design for you",
       },
       // ES
       es: {
@@ -103,6 +120,9 @@ class PrintcartDesignerShopify {
         design_here_online: "Diseña en linea aquí",
         already_have_a_design: "Ya tienes tu idea lista",
         customize_every_details: " Personaliza todos los detalles",
+        request_us_to_design: "Request Us to Design",
+        share_your_idea: "Share your ideas in a brief",
+        our_designers_do_st: "Our designers will craft a custom design for you",
       },
     };
 
@@ -113,9 +133,6 @@ class PrintcartDesignerShopify {
     }
 
     this.#addStyle();
-    this.#openSelectModal();
-    this.#registerCloseModal();
-    this.#modalTrap();
 
     let variantId = null;
 
@@ -137,9 +154,6 @@ class PrintcartDesignerShopify {
       this.#initializeProductTools(variantId);
     });
 
-    // Language
-    this.#language();
-
     this.#initializeProductTools(variantId);
   }
 
@@ -158,6 +172,7 @@ class PrintcartDesignerShopify {
 
       const isDesignEnabled = res.data.enable_design;
       const isUploadEnabled = res.data.enable_upload;
+      const isQuotationRequest = res.data.enable_request_quote;
 
       if (isDesignEnabled) {
         this.#designerInstance = new PrintcartDesigner({
@@ -181,9 +196,20 @@ class PrintcartDesignerShopify {
         this.#registerUploaderEvents();
       }
 
-      if (isUploadEnabled || isDesignEnabled) {
+      if (isQuotationRequest) {
+        this.#quotationRequestInstance = true;
+        this.#initializeQuoteRequest(res.data);
+      }
+
+      if (isUploadEnabled || isDesignEnabled || isQuotationRequest) {
         this.#createBtn();
       }
+
+      this.#openSelectModal();
+      this.#registerCloseModal();
+      this.#modalTrap();
+      // Language
+      this.#language();
     });
   }
 
@@ -232,6 +258,66 @@ class PrintcartDesignerShopify {
   #openSelectModal() {
     const uploadImgSrc = "https://files.printcart.com/common/upload.svg";
     const designImgSrc = "https://files.printcart.com/common/design.svg";
+    const quoteImgSrc = "https://files.printcart.com/common/quote.svg";
+
+    const buttonUploader = `<button class="pc-select_btn" id="pc-select_btn_upload">
+      <div aria-hidden="true" class="pc-select_btn_wrap">
+        <div class="pc-select_btn_img">
+          <div class="pc-select_btn_img_inner">
+            <img src="${uploadImgSrc}" alt="Printcart Uploader" />
+          </div>
+        </div>
+        <div class="pc-select_btn_content">
+          <div class="pc-select_btn_content_inner">
+            <h2 class="pc-title" data-i18n="upload_a_full_design"></h2>
+            <ul>
+              <li data-i18n="have_a_complete_design"></li>
+              <li data-i18n="have_your_own_design"></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="visually-hidden" data-i18n="upload_design_file"></div>
+    </button>`;
+    const buttonDesigner = `<button class="pc-select_btn" id="pc-select_btn_design">
+      <div aria-hidden="true" class="pc-select_btn_wrap">
+        <div class="pc-select_btn_img">
+          <div class="pc-select_btn_img_inner">
+            <img src="${designImgSrc}" alt="Printcart Designer" />
+          </div>
+        </div>
+        <div class="pc-select_btn_content">
+          <div class="pc-select_btn_content_inner">
+            <h2 class="pc-title" data-i18n="design_here_online"></h2>
+            <ul>
+              <li data-i18n="already_have_a_design"></li>
+              <li data-i18n="customize_every_details"></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="visually-hidden" data-i18n="upload_design_file"></div>
+    </button>`;
+
+    const buttonQuoteRequest = `<button class="pc-select_btn" id="pc-select_btn_quote_request">
+      <div aria-hidden="true" class="pc-select_btn_wrap">
+        <div class="pc-select_btn_img">
+          <div class="pc-select_btn_img_inner">
+            <img src="${quoteImgSrc}" alt="Printcart Quotation Request" />
+          </div>
+        </div>
+        <div class="pc-select_btn_content">
+          <div class="pc-select_btn_content_inner">
+            <h2 class="pc-title" data-i18n="request_us_to_design"></h2>
+            <ul>
+              <li data-i18n="share_your_idea"></li>
+              <li data-i18n="our_designers_do_st"></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="visually-hidden" data-i18n="upload_design_file"></div>
+    </button>`;
 
     const inner = `
       <button aria-label="Close" id="pc-select_close-btn"><span data-modal-x></span></button>
@@ -239,44 +325,9 @@ class PrintcartDesignerShopify {
         <div class="pc-select-inner">
           <div id="pc-select_header" data-i18n="pc_select_header"></div>
           <div id="pc-select_container">
-            <button class="pc-select_btn" id="pc-select_btn_upload">
-              <div aria-hidden="true" class="pc-select_btn_wrap">
-                <div class="pc-select_btn_img">
-                  <div class="pc-select_btn_img_inner">
-                    <img src="${uploadImgSrc}" alt="Printcart Uploader" />
-                  </div>
-                </div>
-                <div class="pc-select_btn_content">
-                  <div class="pc-select_btn_content_inner">
-                    <h2 class="pc-title" data-i18n="upload_a_full_design"></h2>
-                    <ul>
-                      <li data-i18n="have_a_complete_design"></li>
-                      <li data-i18n="have_your_own_design"></li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-              <div class="visually-hidden" data-i18n="upload_design_file"></div>
-            </button>
-            <button class="pc-select_btn" id="pc-select_btn_design">
-              <div aria-hidden="true" class="pc-select_btn_wrap">
-                <div class="pc-select_btn_img">
-                  <div class="pc-select_btn_img_inner">
-                    <img src="${designImgSrc}" alt="Printcart Designer" />
-                  </div>
-                </div>
-                <div class="pc-select_btn_content">
-                  <div class="pc-select_btn_content_inner">
-                    <h2 class="pc-title" data-i18n="design_here_online"></h2>
-                    <ul>
-                      <li data-i18n="already_have_a_design"></li>
-                      <li data-i18n="customize_every_details"></li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-              <div class="visually-hidden" data-i18n="upload_design_file"></div>
-            </button>
+            ${this.#designerInstance ? buttonDesigner : ""}
+            ${this.#uploaderInstance ? buttonUploader : ""}
+            ${this.#quotationRequestInstance ? buttonQuoteRequest : ""}
           </div>
         </div>
       </div>
@@ -309,11 +360,17 @@ class PrintcartDesignerShopify {
       }
     };
 
+    const quoteRequest = () => {
+      this.#quotationRequestOpen();
+    };
+
     const uploadBtn = document.getElementById("pc-select_btn_upload");
     const designBtn = document.getElementById("pc-select_btn_design");
+    const quoteBtn = document.getElementById("pc-select_btn_quote_request");
 
     if (uploadBtn) uploadBtn?.addEventListener("click", upload);
     if (designBtn) designBtn?.addEventListener("click", design);
+    if (quoteBtn) quoteBtn?.addEventListener("click", quoteRequest);
   }
 
   #modalTrap() {
@@ -633,6 +690,90 @@ class PrintcartDesignerShopify {
     }
   }
 
+  async #createQuotationRequest(object: TPostQuotationRequest): Promise<any> {
+    const loader = document.getElementsByClassName("pc-handle-overlay");
+    const alertSuccess = document.getElementsByClassName("pc-alert-success");
+    const alertDanger = document.getElementsByClassName("pc-alert-danger");
+    if (alertSuccess[0]?.classList) {
+      alertSuccess[0].classList.remove("active");
+    }
+    if (alertDanger[0]?.classList) {
+      alertDanger[0].classList.remove("active");
+    }
+    if (loader[0]?.classList) {
+      loader[0].classList.add("active");
+    }
+
+    const toggleLoader = (isTrue = false, mess = "") => {
+      if (loader[0]?.classList) {
+        loader[0].classList.remove("active");
+      }
+
+      if (isTrue && alertSuccess[0]?.classList) {
+        alertSuccess[0].classList.add("active");
+        return;
+      }
+
+      if (alertDanger[0]?.classList) {
+        alertDanger[0].classList.add("active");
+        alertDanger[0].textContent = mess;
+      }
+    };
+
+    try {
+      const printcartApiUrl = `${this.#apiUrl}quotation-requests`;
+
+      if (!object.name || !object.email) {
+        toggleLoader(false, "Name and Email are required");
+        return;
+      }
+
+      const token = this.token || "";
+      if (!token) {
+        toggleLoader(false, "Missing Printcart Unauth Token");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("name", object.name);
+      formData.append("product_id", object.product_id);
+      formData.append("email", object.email);
+      formData.append("phone", object.phone);
+      formData.append("whatsapp", object.whatsapp);
+      formData.append("note", object.note);
+      if (object.design_file) {
+        formData.append("design_file", object.design_file);
+      }
+
+      fetch(printcartApiUrl, {
+        method: "POST",
+        headers: {
+          "X-PrintCart-Unauth-Token": token,
+        },
+        body: formData,
+      }).then((res) => {
+        if (!res.ok) {
+          res.json().then((error) => {
+            toggleLoader(false, error.message);
+          });
+          return;
+        }
+
+        const form = document.getElementById(
+          "quotation-request-form"
+        ) as HTMLFormElement;
+        form.reset();
+
+        toggleLoader(true);
+      });
+    } catch (error) {
+      //@ts-ignore
+
+      toggleLoader(false, "Failed to create quotation request");
+      return;
+    }
+  }
+
   async #getStoreDetail() {
     try {
       const printcartApiUrl = `${this.#apiUrl}stores/store-details`;
@@ -700,19 +841,193 @@ class PrintcartDesignerShopify {
     if (button && button instanceof HTMLButtonElement) {
       button.onclick = (e) => {
         e.preventDefault();
-        if (this.#designerInstance && !this.#uploaderInstance) {
+        if (
+          this.#designerInstance &&
+          !this.#uploaderInstance &&
+          !this.#quotationRequestInstance
+        ) {
           this.#designerInstance.render();
+          return;
         }
 
-        if (!this.#designerInstance && this.#uploaderInstance) {
+        if (
+          !this.#designerInstance &&
+          this.#uploaderInstance &&
+          !this.#quotationRequestInstance
+        ) {
           this.#uploaderInstance.open();
+          return;
         }
 
-        if (this.#designerInstance && this.#uploaderInstance) {
+        if (
+          !this.#designerInstance &&
+          !this.#uploaderInstance &&
+          this.#quotationRequestInstance
+        ) {
+          this.#openQRModal();
+          return;
+        }
+
+        if (
+          this.#designerInstance ||
+          this.#uploaderInstance ||
+          this.#quotationRequestInstance
+        ) {
           this.#openModal();
         }
       };
     }
+  }
+
+  #openQRModal() {
+    const modal = document.getElementById("pc-quotation-request_wrap");
+
+    if (modal) {
+      modal.style.display = "flex";
+      document.body.classList.add("pc-overflow");
+    }
+
+    const closeBtn = modal?.querySelector("#pc-qr_close-btn");
+    if (closeBtn && closeBtn instanceof HTMLButtonElement) closeBtn.focus();
+  }
+
+  #closeQRModal() {
+    const modal = document.getElementById("pc-quotation-request_wrap");
+
+    if (modal) {
+      modal.style.display = "none";
+    }
+
+    document.body.classList.remove("pc-overflow");
+  }
+
+  #initializeQuoteRequest(product: any) {
+    const inner = `
+      <button aria-label="Close" id="pc-qr_close-btn"><span data-modal-x></span></button>
+      <div id="pc-qr-content-overlay">
+        <div class="pc-select-inner">
+          <div id="pc-select_container">
+            <form id="quotation-request-form">
+              <div class="pc-card_header">
+                <h3>Send the request</h3>
+                <div class="pc-alert pc-alert-success">
+                  <div class="success__title">Your quotation request has been successfully created</div>
+                </div>
+                <div class="pc-alert pc-alert-danger">
+                  <div class="success__title">Something went wrong. Please try again later.</div>
+                </div>
+              </div>
+              <div class="pc-card_body">
+                <div>
+                  <label for="name">Name<span class="pc-field-require">*</span></label>
+                  <input type="text" name="name" required />
+                </div>
+                <div>
+                  <label for="email">Email<span class="pc-field-require">*</span></label>
+                  <input type="email" name="email" required />
+                </div>
+                <div>
+                  <label for="phone">Phone</label>
+                  <input type="tel" name="phone" />
+                </div>
+                <div>
+                  <label for="whatsapp">WhatsApp</label>
+                  <input type="tel" name="whatsapp" />
+                </div>
+                <div>
+                  <label for="note">Note</label>
+                  <textarea name="note"></textarea>
+                </div>
+                <div>
+                  <label for="file">File</label>
+                  <input type="file" name="file" />
+                </div>
+              </div>
+              <div class="pc-card_footer">
+                  <button id="pc-submit-quota" type="submit">Submit</button>
+              </div>
+              <div class="pc-handle-overlay">
+                <div class="pc-boxes">
+                  <div class="pc-box"><div></div><div></div><div></div><div></div>
+                  </div>
+                  <div class="pc-box"><div></div><div></div><div></div><div></div>
+                  </div>
+                  <div class="pc-box"><div></div><div></div><div></div><div></div>
+                  </div>
+                  <div class="pc-box"><div></div><div></div><div></div><div></div>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    `;
+
+    const wrap = document.createElement("div");
+    wrap.id = "pc-quotation-request_wrap";
+    wrap.setAttribute("role", "dialog");
+    wrap.setAttribute("aria-modal", "true");
+    wrap.setAttribute("tabIndex", "-1");
+    wrap.innerHTML = inner;
+    document.body.appendChild(wrap);
+
+    const closeModalBtn = document.getElementById("pc-qr_close-btn");
+
+    const btnSubmitEl = document.getElementById(
+      "pc-submit-quota"
+    ) as HTMLButtonElement;
+
+    const handleClose = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        this.#closeQRModal();
+      }
+    };
+
+    window.addEventListener("keydown", handleClose);
+    closeModalBtn?.addEventListener("click", () => this.#closeQRModal());
+
+    btnSubmitEl?.addEventListener("click", (e) =>
+      this.#handleQuotationRequest(product?.id, e)
+    );
+  }
+
+  #handleQuotationRequest(productId: string, e: any) {
+    e.preventDefault();
+
+    const form = document.getElementById(
+      "quotation-request-form"
+    ) as HTMLFormElement;
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+
+    const nameEl = document.getElementsByName("name")[0] as HTMLInputElement;
+    const phoneEl = document.getElementsByName("phone")[0] as HTMLInputElement;
+    const whatsappEl = document.getElementsByName(
+      "whatsapp"
+    )[0] as HTMLInputElement;
+    const emailEl = document.getElementsByName("email")[0] as HTMLInputElement;
+    const noteEl = document.getElementsByName("note")[0] as HTMLInputElement;
+    const fileEl = document.getElementsByName("file")[0] as HTMLInputElement;
+    const files: any = fileEl.files;
+
+    const quote = {
+      name: nameEl.value || "",
+      email: emailEl.value || "",
+      phone: phoneEl.value || "",
+      whatsapp: whatsappEl.value || "",
+      note: noteEl.value || "",
+      design_file: files ? files[0] : null,
+      product_id: productId,
+    };
+
+    this.#createQuotationRequest(quote);
+  }
+
+  #quotationRequestOpen() {
+    this.#openQRModal();
   }
 
   async #language() {
