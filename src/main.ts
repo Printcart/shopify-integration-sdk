@@ -68,6 +68,7 @@ class PrintcartDesignerShopify {
   #designerUrl: string;
   #designerInstance: any;
   #uploaderInstance: any;
+  #quotationRequestInstance: boolean;
   #productForm: HTMLFormElement | null;
   #cartForm: HTMLFormElement | null;
   locales: ILocales;
@@ -131,9 +132,6 @@ class PrintcartDesignerShopify {
     }
 
     this.#addStyle();
-    this.#openSelectModal();
-    this.#registerCloseModal();
-    this.#modalTrap();
 
     let variantId = null;
 
@@ -154,9 +152,6 @@ class PrintcartDesignerShopify {
 
       this.#initializeProductTools(variantId);
     });
-
-    // Language
-    this.#language();
 
     this.#initializeProductTools(variantId);
   }
@@ -201,12 +196,19 @@ class PrintcartDesignerShopify {
       }
 
       if (isQuotationRequest) {
+        this.#quotationRequestInstance = true;
         this.#initializeQuoteRequest(res.data);
       }
 
       if (isUploadEnabled || isDesignEnabled || isQuotationRequest) {
         this.#createBtn();
       }
+
+      this.#openSelectModal();
+      this.#registerCloseModal();
+      this.#modalTrap();
+      // Language
+      this.#language();
     });
   }
 
@@ -257,69 +259,77 @@ class PrintcartDesignerShopify {
     const designImgSrc = "https://files.printcart.com/common/design.svg";
     const quoteImgSrc = "https://files.printcart.com/common/quote.svg";
 
+    const buttonUploader = `<button class="pc-select_btn" id="pc-select_btn_upload">
+      <div aria-hidden="true" class="pc-select_btn_wrap">
+        <div class="pc-select_btn_img">
+          <div class="pc-select_btn_img_inner">
+            <img src="${uploadImgSrc}" alt="Printcart Uploader" />
+          </div>
+        </div>
+        <div class="pc-select_btn_content">
+          <div class="pc-select_btn_content_inner">
+            <h2 class="pc-title" data-i18n="upload_a_full_design"></h2>
+            <ul>
+              <li data-i18n="have_a_complete_design"></li>
+              <li data-i18n="have_your_own_design"></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="visually-hidden" data-i18n="upload_design_file"></div>
+    </button>`;
+    const buttonDesigner = `<button class="pc-select_btn" id="pc-select_btn_design">
+      <div aria-hidden="true" class="pc-select_btn_wrap">
+        <div class="pc-select_btn_img">
+          <div class="pc-select_btn_img_inner">
+            <img src="${designImgSrc}" alt="Printcart Designer" />
+          </div>
+        </div>
+        <div class="pc-select_btn_content">
+          <div class="pc-select_btn_content_inner">
+            <h2 class="pc-title" data-i18n="design_here_online"></h2>
+            <ul>
+              <li data-i18n="already_have_a_design"></li>
+              <li data-i18n="customize_every_details"></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="visually-hidden" data-i18n="upload_design_file"></div>
+    </button>`;
+
+    const buttonQuoteRequest = `<button class="pc-select_btn" id="pc-select_btn_quote_request">
+      <div aria-hidden="true" class="pc-select_btn_wrap">
+        <div class="pc-select_btn_img">
+          <div class="pc-select_btn_img_inner">
+            <img src="${quoteImgSrc}" alt="Printcart Quotation Request" />
+          </div>
+        </div>
+        <div class="pc-select_btn_content">
+          <div class="pc-select_btn_content_inner">
+            <h2 class="pc-title" data-i18n="request_us_to_design"></h2>
+            <ul>
+              <li data-i18n="share_your_idea"></li>
+              <li data-i18n="our_designers_do_st"></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="visually-hidden" data-i18n="upload_design_file"></div>
+    </button>`;
+    console.log(this.#designerInstance);
+    console.log(this.#uploaderInstance);
+    console.log(this.#quotationRequestInstance);
+
     const inner = `
       <button aria-label="Close" id="pc-select_close-btn"><span data-modal-x></span></button>
       <div class="pc-select-wrap" id="pc-content-overlay">
         <div class="pc-select-inner">
           <div id="pc-select_header" data-i18n="pc_select_header"></div>
           <div id="pc-select_container">
-            <button class="pc-select_btn" id="pc-select_btn_upload">
-              <div aria-hidden="true" class="pc-select_btn_wrap">
-                <div class="pc-select_btn_img">
-                  <div class="pc-select_btn_img_inner">
-                    <img src="${uploadImgSrc}" alt="Printcart Uploader" />
-                  </div>
-                </div>
-                <div class="pc-select_btn_content">
-                  <div class="pc-select_btn_content_inner">
-                    <h2 class="pc-title" data-i18n="upload_a_full_design"></h2>
-                    <ul>
-                      <li data-i18n="have_a_complete_design"></li>
-                      <li data-i18n="have_your_own_design"></li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-              <div class="visually-hidden" data-i18n="upload_design_file"></div>
-            </button>
-            <button class="pc-select_btn" id="pc-select_btn_design">
-              <div aria-hidden="true" class="pc-select_btn_wrap">
-                <div class="pc-select_btn_img">
-                  <div class="pc-select_btn_img_inner">
-                    <img src="${designImgSrc}" alt="Printcart Designer" />
-                  </div>
-                </div>
-                <div class="pc-select_btn_content">
-                  <div class="pc-select_btn_content_inner">
-                    <h2 class="pc-title" data-i18n="design_here_online"></h2>
-                    <ul>
-                      <li data-i18n="already_have_a_design"></li>
-                      <li data-i18n="customize_every_details"></li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-              <div class="visually-hidden" data-i18n="upload_design_file"></div>
-            </button>
-            <button class="pc-select_btn" id="pc-select_btn_quote_request">
-              <div aria-hidden="true" class="pc-select_btn_wrap">
-                <div class="pc-select_btn_img">
-                  <div class="pc-select_btn_img_inner">
-                    <img src="${quoteImgSrc}" alt="Printcart Quotation Request" />
-                  </div>
-                </div>
-                <div class="pc-select_btn_content">
-                  <div class="pc-select_btn_content_inner">
-                    <h2 class="pc-title" data-i18n="request_us_to_design"></h2>
-                    <ul>
-                      <li data-i18n="share_your_idea"></li>
-                      <li data-i18n="our_designers_do_st"></li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-              <div class="visually-hidden" data-i18n="upload_design_file"></div>
-            </button>
+            ${this.#designerInstance ? buttonDesigner : ""}
+            ${this.#uploaderInstance ? buttonUploader : ""}
+            ${this.#quotationRequestInstance ? buttonQuoteRequest : ""}
           </div>
         </div>
       </div>
@@ -835,15 +845,38 @@ class PrintcartDesignerShopify {
     if (button && button instanceof HTMLButtonElement) {
       button.onclick = (e) => {
         e.preventDefault();
-        if (this.#designerInstance && !this.#uploaderInstance) {
+        if (
+          this.#designerInstance &&
+          !this.#uploaderInstance &&
+          !this.#quotationRequestInstance
+        ) {
           this.#designerInstance.render();
+          return;
         }
 
-        if (!this.#designerInstance && this.#uploaderInstance) {
+        if (
+          !this.#designerInstance &&
+          this.#uploaderInstance &&
+          !this.#quotationRequestInstance
+        ) {
           this.#uploaderInstance.open();
+          return;
         }
 
-        if (this.#designerInstance && this.#uploaderInstance) {
+        if (
+          !this.#designerInstance &&
+          !this.#uploaderInstance &&
+          this.#quotationRequestInstance
+        ) {
+          this.#openQRModal();
+          return;
+        }
+
+        if (
+          this.#designerInstance ||
+          this.#uploaderInstance ||
+          this.#quotationRequestInstance
+        ) {
           this.#openModal();
         }
       };
