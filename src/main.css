@@ -813,3 +813,7 @@ label .pc-field-require {
   color: #641e1e;
 }
 /* End Alert */
+
+.text-danger {
+  color: var(--pc-red-color);
+}
