@@ -108,6 +108,8 @@ class PrintcartDesignerShopify {
         request_us_to_design: "Request Us to Design",
         share_your_idea: "Share your ideas in a brief",
         our_designers_do_st: "Our designers will craft a custom design for you",
+        note_desc: "Brief of what you would like designing",
+        file_desc: "Upload any reference images or design files",
       },
       // ES
       es: {
@@ -123,6 +125,8 @@ class PrintcartDesignerShopify {
         request_us_to_design: "Request Us to Design",
         share_your_idea: "Share your ideas in a brief",
         our_designers_do_st: "Our designers will craft a custom design for you",
+        note_desc: "Brief of what you would like designing",
+        file_desc: "Upload any reference images or design files",
       },
     };
 
@@ -903,65 +907,89 @@ class PrintcartDesignerShopify {
   }
 
   #initializeQuoteRequest(product: any) {
+    const formatCurrency = (amount: number, currency: string): string => {
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: currency,
+      }).format(amount);
+    };
+
+    let currencyHtml = ``;
+    if (
+      product?.request_quote_options?.additionalFee &&
+      product?.request_quote_options?.additionalFee > 0 &&
+      product?.request_quote_options?.currency?.symbol
+    ) {
+      const amount = parseFloat(product?.request_quote_options?.additionalFee);
+      const code = product?.request_quote_options?.currency?.code;
+      currencyHtml = `<span class="pc-currency text-danger">Please note that an additional fee of <b>${formatCurrency(
+        amount,
+        code
+      )}</b> applies to custom design requests. Thank you for your understanding!</span>`;
+    }
+
     const inner = `
       <button aria-label="Close" id="pc-qr_close-btn"><span data-modal-x></span></button>
       <div id="pc-qr-content-overlay">
-        <div class="pc-select-inner">
-          <div id="pc-select_container">
-            <form id="quotation-request-form">
-              <div class="pc-card_header">
-                <h3>Send the request</h3>
-                <div class="pc-alert pc-alert-success">
-                  <div class="success__title">Your quotation request has been successfully created</div>
-                </div>
-                <div class="pc-alert pc-alert-danger">
-                  <div class="success__title">Something went wrong. Please try again later.</div>
-                </div>
-              </div>
-              <div class="pc-card_body">
-                <div>
-                  <label for="name">Name<span class="pc-field-require">*</span></label>
-                  <input type="text" name="name" required />
-                </div>
-                <div>
-                  <label for="email">Email<span class="pc-field-require">*</span></label>
-                  <input type="email" name="email" required />
-                </div>
-                <div>
-                  <label for="phone">Phone</label>
-                  <input type="tel" name="phone" />
-                </div>
-                <div>
-                  <label for="whatsapp">WhatsApp</label>
-                  <input type="tel" name="whatsapp" />
-                </div>
-                <div>
-                  <label for="note">Note</label>
-                  <textarea name="note"></textarea>
-                </div>
-                <div>
-                  <label for="file">File</label>
-                  <input type="file" name="file" />
-                </div>
-              </div>
-              <div class="pc-card_footer">
-                  <button id="pc-submit-quota" type="submit">Submit</button>
-              </div>
-              <div class="pc-handle-overlay">
-                <div class="pc-boxes">
-                  <div class="pc-box"><div></div><div></div><div></div><div></div>
-                  </div>
-                  <div class="pc-box"><div></div><div></div><div></div><div></div>
-                  </div>
-                  <div class="pc-box"><div></div><div></div><div></div><div></div>
-                  </div>
-                  <div class="pc-box"><div></div><div></div><div></div><div></div>
-                  </div>
-                </div>
-              </div>
-            </form>
+      <div class="pc-select-inner">
+        <div id="pc-select_container">
+        <form id="quotation-request-form">
+          <div class="pc-card_header">
+          <h2>Send the request</h2>
+          ${currencyHtml ? currencyHtml : ""}
+          <div class="pc-alert pc-alert-success">
+            <div class="success__title">Your quotation request has been successfully created</div>
           </div>
+          <div class="pc-alert pc-alert-danger">
+            <div class="success__title">Something went wrong. Please try again later.</div>
+          </div>
+          </div>
+          <div class="pc-card_body">
+          <div>
+            <label for="pc-name">Name<span class="pc-field-require">*</span></label>
+            <input id="pc-name" type="text" name="name" required />
+          </div>
+          <div>
+            <label for="pc-email">Email<span class="pc-field-require">*</span></label>
+            <input id="pc-email" type="email" name="email" required />
+          </div>
+          <div>
+            <label for="pc-phone">Phone</label>
+            <input id="pc-phone" type="tel" name="phone" />
+          </div>
+          <div>
+            <label for="pc-whatsapp">WhatsApp</label>
+            <input id="pc-whatsapp" type="tel" name="whatsapp" />
+          </div>
+          <div>
+            <label for="pc-note">Note</label>
+            <description data-i18n="note_desc"></description>
+            <textarea id="pc-note" name="note"></textarea>
+          </div>
+          <div>
+            <label for="pc-file">File</label>
+            <description data-i18n="file_desc"></description>
+            <input id="pc-file" type="file" name="file" title="Choose a file from your device"/>
+          </div>
+          </div>
+          <div class="pc-card_footer">
+            <button id="pc-submit-quota" type="submit">Submit</button>
+          </div>
+          <div class="pc-handle-overlay">
+          <div class="pc-boxes">
+            <div class="pc-box"><div></div><div></div><div></div><div></div>
+            </div>
+            <div class="pc-box"><div></div><div></div><div></div><div></div>
+            </div>
+            <div class="pc-box"><div></div><div></div><div></div><div></div>
+            </div>
+            <div class="pc-box"><div></div><div></div><div></div><div></div>
+            </div>
+          </div>
+          </div>
+        </form>
         </div>
+      </div>
       </div>
     `;
 
