@@ -947,29 +947,29 @@ class PrintcartDesignerShopify {
           <div class="pc-card_body">
           <div>
             <label for="pc-name">Name<span class="pc-field-require">*</span></label>
-            <input id="pc-name" type="text" name="name" required />
+            <input id="pc-name" type="text" name="pc-name" required />
           </div>
           <div>
             <label for="pc-email">Email<span class="pc-field-require">*</span></label>
-            <input id="pc-email" type="email" name="email" required />
+            <input id="pc-email" type="email" name="pc-email" required />
           </div>
           <div>
             <label for="pc-phone">Phone</label>
-            <input id="pc-phone" type="tel" name="phone" />
+            <input id="pc-phone" type="tel" name="pc-phone" />
           </div>
           <div>
             <label for="pc-whatsapp">WhatsApp</label>
-            <input id="pc-whatsapp" type="tel" name="whatsapp" />
+            <input id="pc-whatsapp" type="tel" name="pc-whatsapp" />
           </div>
           <div>
             <label for="pc-note">Note</label>
             <description data-i18n="note_desc"></description>
-            <textarea id="pc-note" name="note"></textarea>
+            <textarea id="pc-note" name="pc-note"></textarea>
           </div>
           <div>
             <label for="pc-file">File</label>
             <description data-i18n="file_desc"></description>
-            <input id="pc-file" type="file" name="file" title="Choose a file from your device"/>
+            <input id="pc-file" type="file" name="pc-file" title="Choose a file from your device"/>
           </div>
           </div>
           <div class="pc-card_footer">
@@ -1032,14 +1032,14 @@ class PrintcartDesignerShopify {
       return;
     }
 
-    const nameEl = document.getElementsByName("name")[0] as HTMLInputElement;
-    const phoneEl = document.getElementsByName("phone")[0] as HTMLInputElement;
+    const nameEl = document.getElementsByName("pc-name")[0] as HTMLInputElement;
+    const phoneEl = document.getElementsByName("pc-phone")[0] as HTMLInputElement;
     const whatsappEl = document.getElementsByName(
-      "whatsapp"
+      "pc-whatsapp"
     )[0] as HTMLInputElement;
-    const emailEl = document.getElementsByName("email")[0] as HTMLInputElement;
-    const noteEl = document.getElementsByName("note")[0] as HTMLInputElement;
-    const fileEl = document.getElementsByName("file")[0] as HTMLInputElement;
+    const emailEl = document.getElementsByName("pc-email")[0] as HTMLInputElement;
+    const noteEl = document.getElementsByName("pc-note")[0] as HTMLInputElement;
+    const fileEl = document.getElementsByName("pc-file")[0] as HTMLInputElement;
     const files: any = fileEl.files;
 
     const quote = {
