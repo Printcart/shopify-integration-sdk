@@ -172,7 +172,7 @@ class PrintcartDesignerShopify {
     }
 
     this.#getPrintcartProduct(variantId).then((res) => {
-      this.productId = res.data.id;
+      this.productId = res?.data?.id;
 
       const isDesignEnabled = res.data.enable_design;
       const isUploadEnabled = res.data.enable_upload;
@@ -337,9 +337,9 @@ class PrintcartDesignerShopify {
         </div>
       </div>
     `;
-    const containerWrap = document.getElementById('pc-select_wrap')
-    if(containerWrap){
-      containerWrap.remove()
+    const containerWrap = document.getElementById("pc-select_wrap");
+    if (containerWrap) {
+      containerWrap.remove();
     }
 
     const wrap = document.createElement("div");
@@ -1037,11 +1037,15 @@ class PrintcartDesignerShopify {
     }
 
     const nameEl = document.getElementsByName("pc-name")[0] as HTMLInputElement;
-    const phoneEl = document.getElementsByName("pc-phone")[0] as HTMLInputElement;
+    const phoneEl = document.getElementsByName(
+      "pc-phone"
+    )[0] as HTMLInputElement;
     const whatsappEl = document.getElementsByName(
       "pc-whatsapp"
     )[0] as HTMLInputElement;
-    const emailEl = document.getElementsByName("pc-email")[0] as HTMLInputElement;
+    const emailEl = document.getElementsByName(
+      "pc-email"
+    )[0] as HTMLInputElement;
     const noteEl = document.getElementsByName("pc-note")[0] as HTMLInputElement;
     const fileEl = document.getElementsByName("pc-file")[0] as HTMLInputElement;
     const files: any = fileEl.files;
