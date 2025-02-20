@@ -141,12 +141,12 @@ class PrintcartDesignerShopify {
     let variantId = null;
 
     let variantSelect = this.#productForm.querySelector(
-      'form[action$="/cart/add"] input[name="id"]'
+      'form[action$="/cart/add"] [name="id"]'
     );
 
     if (!variantSelect) {
       variantSelect = document.querySelector(
-        'form[action$="/cart/add"] input[name="id"]'
+        'form[action$="/cart/add"] [name="id"]'
       );
     }
 
@@ -172,7 +172,7 @@ class PrintcartDesignerShopify {
     }
 
     this.#getPrintcartProduct(variantId).then((res) => {
-      this.productId = res.data.id;
+      this.productId = res?.data?.id;
 
       const isDesignEnabled = res.data.enable_design;
       const isUploadEnabled = res.data.enable_upload;
@@ -337,6 +337,10 @@ class PrintcartDesignerShopify {
         </div>
       </div>
     `;
+    const containerWrap = document.getElementById("pc-select_wrap");
+    if (containerWrap) {
+      containerWrap.remove();
+    }
 
     const wrap = document.createElement("div");
     wrap.id = "pc-select_wrap";
@@ -826,7 +830,7 @@ class PrintcartDesignerShopify {
       button.className = this.options?.designClassName
         ? this.options?.designClassName
         : "button";
-      const lang = localStorage.getItem("pc_lang") || "";
+      const lang = localStorage.getItem("pc_lang") || "en";
       const titleStartDesign = this.locales[lang].start_design;
 
       button.innerHTML = this.options?.designBtnText
@@ -1033,11 +1037,15 @@ class PrintcartDesignerShopify {
     }
 
     const nameEl = document.getElementsByName("pc-name")[0] as HTMLInputElement;
-    const phoneEl = document.getElementsByName("pc-phone")[0] as HTMLInputElement;
+    const phoneEl = document.getElementsByName(
+      "pc-phone"
+    )[0] as HTMLInputElement;
     const whatsappEl = document.getElementsByName(
       "pc-whatsapp"
     )[0] as HTMLInputElement;
-    const emailEl = document.getElementsByName("pc-email")[0] as HTMLInputElement;
+    const emailEl = document.getElementsByName(
+      "pc-email"
+    )[0] as HTMLInputElement;
     const noteEl = document.getElementsByName("pc-note")[0] as HTMLInputElement;
     const fileEl = document.getElementsByName("pc-file")[0] as HTMLInputElement;
     const files: any = fileEl.files;
