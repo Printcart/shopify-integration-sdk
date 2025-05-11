@@ -171,15 +171,15 @@ class PrintcartDesignerShopify {
       throw new Error("Can not find product variant ID");
     }
 
+    // Language
+    this.#getStoreDetail();
+
     this.#getPrintcartProduct(variantId).then((res) => {
       this.productId = res?.data?.id;
 
       const isDesignEnabled = res.data.enable_design;
       const isUploadEnabled = res.data.enable_upload;
       const isQuotationRequest = res.data.enable_request_quote;
-
-      // Language
-      this.#language();
 
       if (isDesignEnabled) {
         this.#designerInstance = new PrintcartDesigner({
@@ -783,33 +783,6 @@ class PrintcartDesignerShopify {
     }
   }
 
-  async #getStoreDetail() {
-    try {
-      const printcartApiUrl = `${this.#apiUrl}stores/store-details`;
-
-      const token = this.token;
-      if (!token) {
-        throw new Error("Missing Printcart Unauth Token");
-      }
-
-      const printcartPromise = await fetch(printcartApiUrl, {
-        headers: {
-          "X-PrintCart-Unauth-Token": token,
-        },
-      });
-
-      const storeDetail: StoreDetail = await printcartPromise.json();
-
-      return storeDetail;
-    } catch (error) {
-      //@ts-ignore
-      console.error(
-        "There has been a problem with your fetch operation:",
-        error
-      );
-    }
-  }
-
   #createBtn() {
     const cartForm = this.#cartForm ?? this.#productForm;
 
@@ -831,6 +804,7 @@ class PrintcartDesignerShopify {
         ? this.options?.designClassName
         : "button";
       const lang = localStorage.getItem("pc_lang") || "en";
+
       const titleStartDesign = this.locales[lang].start_design;
 
       button.innerHTML = this.options?.designBtnText
@@ -1067,23 +1041,102 @@ class PrintcartDesignerShopify {
     this.#openQRModal();
   }
 
-  async #language() {
+  async #getStoreDetail() {
     let defaultLanguage: any = "en";
-    await this.#getStoreDetail()
-      .then((res: any) => {
-        if (res.data.language === "en" || res.data.language === "es") {
-          localStorage.setItem("pc_lang", res.data.language);
-          defaultLanguage = res.data.language;
-          return;
-        }
 
-        localStorage.setItem("pc_lang", "en");
-        defaultLanguage = "en";
-        return;
-      })
-      .catch((error) => {
-        console.error(error);
+    try {
+      const printcartApiUrl = `${this.#apiUrl}stores/store-details`;
+
+      const token = this.token;
+      if (!token) {
+        throw new Error("Missing Printcart Unauth Token");
+      }
+
+      const printcartPromise = await fetch(printcartApiUrl, {
+        headers: {
+          "X-PrintCart-Unauth-Token": token,
+        },
       });
+
+      const storeDetail: any = await printcartPromise.json();
+
+      const cssString = storeDetail?.data?.setting_defaults?.customCss.value;
+      const textReplace = storeDetail?.data?.setting_defaults?.textReplace;
+
+      this.locales.en = {
+        start_design: textReplace?.start_design
+          ? textReplace.start_design
+          : this.locales.en.start_design,
+        pc_select_header: textReplace?.pc_select_header
+          ? textReplace.pc_select_header
+          : this.locales.en.pc_select_header,
+        upload_a_full_design: textReplace?.upload_a_full_design
+          ? textReplace.upload_a_full_design
+          : this.locales.en.upload_a_full_design,
+        upload_design_file: textReplace?.upload_design_file
+          ? textReplace.upload_design_file
+          : this.locales.en.upload_design_file,
+        have_a_complete_design: textReplace?.have_a_complete_design
+          ? textReplace.have_a_complete_design
+          : this.locales.en.have_a_complete_design,
+        have_your_own_design: textReplace?.have_your_own_design
+          ? textReplace.have_your_own_design
+          : this.locales.en.have_your_own_design,
+        design_here_online: textReplace?.design_here_online
+          ? textReplace.design_here_online
+          : this.locales.en.design_here_online,
+        already_have_a_design: textReplace?.already_have_a_design
+          ? textReplace.already_have_a_design
+          : this.locales.en.already_have_a_design,
+        customize_every_details: textReplace?.customize_every_details
+          ? textReplace.customize_every_details
+          : this.locales.en.customize_every_details,
+        request_us_to_design: textReplace?.request_us_to_design
+          ? textReplace.request_us_to_design
+          : this.locales.en.request_us_to_design,
+        share_your_idea: textReplace?.share_your_idea
+          ? textReplace.share_your_idea
+          : this.locales.en.share_your_idea,
+        our_designers_do_st: textReplace?.our_designers_do_st
+          ? textReplace.our_designers_do_st
+          : this.locales.en.our_designers_do_st,
+        note_desc: textReplace?.note_desc
+          ? textReplace.note_desc
+          : this.locales.en.note_desc,
+        file_desc: textReplace?.file_desc
+          ? textReplace.file_desc
+          : this.locales.en.file_desc,
+      };
+
+      if (cssString) {
+        const styleElement = document.createElement("style");
+
+        styleElement.textContent = cssString;
+        styleElement.type = "text/css";
+
+        document.head.appendChild(styleElement);
+      }
+
+      if (
+        storeDetail.data.language === "en" ||
+        storeDetail.data.language === "es"
+      ) {
+        localStorage.setItem("pc_lang", storeDetail.data.language);
+        defaultLanguage = storeDetail.data.language;
+        return;
+      }
+
+      localStorage.setItem("pc_lang", "en");
+      defaultLanguage = "en";
+
+      return storeDetail;
+    } catch (error) {
+      //@ts-ignore
+      console.error(
+        "There has been a problem with your fetch operation:",
+        error
+      );
+    }
 
     const elements: NodeListOf<HTMLElement> =
       document.querySelectorAll("[data-i18n]");
