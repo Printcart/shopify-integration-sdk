@@ -161,7 +161,7 @@ class PrintcartDesignerShopify {
     this.#initializeProductTools(variantId);
   }
 
-  #initializeProductTools(variantId: string | null) {
+  async #initializeProductTools(variantId: string | null) {
     if (!variantId) {
       const shopifyMetaData = window?.ShopifyAnalytics?.meta;
       variantId = shopifyMetaData?.selectedVariantId;
@@ -171,51 +171,52 @@ class PrintcartDesignerShopify {
       throw new Error("Can not find product variant ID");
     }
 
+    const printcartProduct: any = await this.#getPrintcartProduct(variantId);
+
+    this.productId = printcartProduct?.data?.id;
+
+    const isDesignEnabled = printcartProduct.data.enable_design;
+    const isUploadEnabled = printcartProduct.data.enable_upload;
+    const isQuotationRequest = printcartProduct.data.enable_request_quote;
+
     // Language
-    this.#getStoreDetail();
+    await this.#language();
 
-    this.#getPrintcartProduct(variantId).then((res) => {
-      this.productId = res?.data?.id;
+    if (isDesignEnabled) {
+      this.#designerInstance = new PrintcartDesigner({
+        token: this.token,
+        productId: this.productId,
+        options: {
+          ...this.options?.designerOptions,
+          designerUrl: this.#designerUrl,
+        },
+      });
 
-      const isDesignEnabled = res.data.enable_design;
-      const isUploadEnabled = res.data.enable_upload;
-      const isQuotationRequest = res.data.enable_request_quote;
+      this.#registerDesignerEvents();
+    }
 
-      if (isDesignEnabled) {
-        this.#designerInstance = new PrintcartDesigner({
-          token: this.token,
-          productId: this.productId,
-          options: {
-            ...this.options?.designerOptions,
-            designerUrl: this.#designerUrl,
-          },
-        });
+    if (isUploadEnabled) {
+      this.#uploaderInstance = new PrintcartUploader({
+        token: this.token,
+        productId: this.productId,
+      });
 
-        this.#registerDesignerEvents();
-      }
+      this.#registerUploaderEvents();
+    }
 
-      if (isUploadEnabled) {
-        this.#uploaderInstance = new PrintcartUploader({
-          token: this.token,
-          productId: this.productId,
-        });
+    if (isQuotationRequest) {
+      this.#quotationRequestInstance = true;
+      this.#initializeQuoteRequest(printcartProduct.data);
+    }
 
-        this.#registerUploaderEvents();
-      }
+    if (isUploadEnabled || isDesignEnabled || isQuotationRequest) {
+      this.#createBtn();
+    }
 
-      if (isQuotationRequest) {
-        this.#quotationRequestInstance = true;
-        this.#initializeQuoteRequest(res.data);
-      }
-
-      if (isUploadEnabled || isDesignEnabled || isQuotationRequest) {
-        this.#createBtn();
-      }
-
-      this.#openSelectModal();
-      this.#registerCloseModal();
-      this.#modalTrap();
-    });
+    await this.#openSelectModal();
+    await this.#registerCloseModal();
+    await this.#modalTrap();
+    await this.#applyLanguage();
   }
 
   #openModal() {
@@ -783,6 +784,33 @@ class PrintcartDesignerShopify {
     }
   }
 
+  async #getStoreDetail() {
+    try {
+      const printcartApiUrl = `${this.#apiUrl}stores/store-details`;
+
+      const token = this.token;
+      if (!token) {
+        throw new Error("Missing Printcart Unauth Token");
+      }
+
+      const printcartPromise = await fetch(printcartApiUrl, {
+        headers: {
+          "X-PrintCart-Unauth-Token": token,
+        },
+      });
+
+      const storeDetail: StoreDetail = await printcartPromise.json();
+
+      return storeDetail;
+    } catch (error) {
+      //@ts-ignore
+      console.error(
+        "There has been a problem with your fetch operation:",
+        error
+      );
+    }
+  }
+
   #createBtn() {
     const cartForm = this.#cartForm ?? this.#productForm;
 
@@ -1041,29 +1069,25 @@ class PrintcartDesignerShopify {
     this.#openQRModal();
   }
 
-  async #getStoreDetail() {
-    let defaultLanguage: any = "en";
+  async #language() {
+    let cssString: any;
+    let textReplace: any;
+    const store: any = await this.#getStoreDetail();
+    cssString = store?.data?.setting_defaults?.customCss.value;
+    textReplace = store?.data?.setting_defaults?.textReplace;
 
-    try {
-      const printcartApiUrl = `${this.#apiUrl}stores/store-details`;
+    if (
+      store?.data?.language &&
+      (store.data.language === "en" || store.data.language === "es")
+    ) {
+      localStorage.setItem("pc_lang", store.data.language);
+    } else {
+      localStorage.setItem("pc_lang", "en");
+    }
 
-      const token = this.token;
-      if (!token) {
-        throw new Error("Missing Printcart Unauth Token");
-      }
-
-      const printcartPromise = await fetch(printcartApiUrl, {
-        headers: {
-          "X-PrintCart-Unauth-Token": token,
-        },
-      });
-
-      const storeDetail: any = await printcartPromise.json();
-
-      const cssString = storeDetail?.data?.setting_defaults?.customCss.value;
-      const textReplace = storeDetail?.data?.setting_defaults?.textReplace;
-
-      this.locales.en = {
+    this.locales = {
+      ...this.locales,
+      en: {
         start_design: textReplace?.start_design
           ? textReplace.start_design
           : this.locales.en.start_design,
@@ -1106,38 +1130,21 @@ class PrintcartDesignerShopify {
         file_desc: textReplace?.file_desc
           ? textReplace.file_desc
           : this.locales.en.file_desc,
-      };
+      },
+    };
 
-      if (cssString) {
-        const styleElement = document.createElement("style");
+    if (cssString) {
+      const styleElement = document.createElement("style");
 
-        styleElement.textContent = cssString;
-        styleElement.type = "text/css";
+      styleElement.textContent = cssString;
+      styleElement.type = "text/css";
 
-        document.head.appendChild(styleElement);
-      }
-
-      if (
-        storeDetail.data.language === "en" ||
-        storeDetail.data.language === "es"
-      ) {
-        localStorage.setItem("pc_lang", storeDetail.data.language);
-        defaultLanguage = storeDetail.data.language;
-        return;
-      }
-
-      localStorage.setItem("pc_lang", "en");
-      defaultLanguage = "en";
-
-      return storeDetail;
-    } catch (error) {
-      //@ts-ignore
-      console.error(
-        "There has been a problem with your fetch operation:",
-        error
-      );
+      document.head.appendChild(styleElement);
     }
+  }
 
+  #applyLanguage() {
+    const defaultLanguage = localStorage.getItem("pc_lang") || "en";
     const elements: NodeListOf<HTMLElement> =
       document.querySelectorAll("[data-i18n]");
 

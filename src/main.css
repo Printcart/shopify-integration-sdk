@@ -289,24 +289,26 @@
 }
 
 #pc-btn {
-  border: none;
+  border: 1px solid var(--pc-primary-color);
   margin: 0;
   padding: 0;
   width: auto;
   overflow: visible;
   color: var(--pc-white-color);
-  background-color: var(--pc-drank-color);
-  line-height: normal;
+  background-color: var(--pc-primary-color);
+  line-height: 1.5;
   -webkit-font-smoothing: inherit;
   -moz-osx-font-smoothing: inherit;
   -webkit-appearance: none;
-  padding: 8px 12px;
+  padding: 10px 20px;
   cursor: pointer;
-  margin-bottom: 8px;
   min-width: 74px;
-  margin-top: 10px;
+  margin: 10px 0;
   font-size: initial;
   text-wrap: nowrap;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 50px;
 }
 
 .pc-primary-btn {
