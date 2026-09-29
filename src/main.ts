@@ -60,6 +60,91 @@ type StoreDetail = {
   };
 };
 
+type TPhoneMode = "hidden" | "optional" | "required";
+
+interface IUploadIntakeFormConfig {
+  phone: TPhoneMode;
+  note: boolean;
+  require_consent: boolean;
+  consent_text: string | null;
+  store_name: string | null;
+}
+
+interface IUploadIntakeResult {
+  intake_uuid: string;
+  reference: string;
+  project_id?: string;
+  status?: string;
+  buyer?: { name: string; email: string };
+}
+
+type TUploadIntakeFormState = {
+  name: string;
+  email: string;
+  phone: string;
+  note: string;
+  consent: boolean;
+};
+
+type TUploadIntakeSubmitResult =
+  | { ok: true; data: IUploadIntakeResult }
+  | { ok: false; kind: "validation"; message: string }
+  | { ok: false; kind: "fallback" };
+
+const DEFAULT_UPLOAD_INTAKE_FORM_CONFIG: IUploadIntakeFormConfig = {
+  phone: "optional",
+  note: true,
+  require_consent: false,
+  consent_text: null,
+  store_name: null,
+};
+
+// Generates a fresh idempotency key per "submit attempt group" (one per modal
+// open / retry-group), per order-upload-buyer-journey-spec.vi.md §14.1.
+function genIdempotencyKey(): string {
+  // @ts-ignore
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    // @ts-ignore
+    return crypto.randomUUID();
+  }
+  return `${Date.now().toString(16)}-${Math.random()
+    .toString(16)
+    .slice(2)}-${Math.random().toString(16).slice(2)}`;
+}
+
+function escapeHtml(value: string): string {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+// Best-effort prefill from whatever the theme happens to expose. Never throws,
+// never assumes a field exists — most themes expose none of this on a product
+// page, that's fine, the fields just start empty.
+function prefillBuyerInfo(): { name: string; email: string; phone: string } {
+  try {
+    // @ts-ignore
+    const customer = window?.Shopify?.customer || window?.ShopifyAnalytics?.meta?.page?.customer;
+
+    if (!customer) return { name: "", email: "", phone: "" };
+
+    const name =
+      customer.name ||
+      [customer.first_name, customer.last_name].filter(Boolean).join(" ") ||
+      "";
+
+    return {
+      name,
+      email: customer.email || "",
+      phone: customer.phone || customer?.default_address?.phone || "",
+    };
+  } catch (error) {
+    return { name: "", email: "", phone: "" };
+  }
+}
+
 class PrintcartDesignerShopify {
   #apiUrl: string;
   token: string | null;
@@ -71,12 +156,17 @@ class PrintcartDesignerShopify {
   #quotationRequestInstance: boolean;
   #productForm: HTMLFormElement | null;
   #cartForm: HTMLFormElement | null;
+  #variantId: string | null;
+  #uploadIntakeFormConfig: IUploadIntakeFormConfig;
+  #noticeTimeout?: ReturnType<typeof setTimeout>;
   locales: ILocales;
 
   constructor() {
     this.token = this.#getUnauthToken();
     this.productId = null;
     this.#quotationRequestInstance = false;
+    this.#variantId = null;
+    this.#uploadIntakeFormConfig = { ...DEFAULT_UPLOAD_INTAKE_FORM_CONFIG };
 
     // @ts-ignore
     this.options = window.PrintcartDesignerShopifyOptions;
@@ -171,6 +261,8 @@ class PrintcartDesignerShopify {
       throw new Error("Can not find product variant ID");
     }
 
+    this.#variantId = variantId;
+
     const printcartProduct: any = await this.#getPrintcartProduct(variantId);
 
     this.productId = printcartProduct?.data?.id;
@@ -196,6 +288,8 @@ class PrintcartDesignerShopify {
     }
 
     if (isUploadEnabled) {
+      await this.#getUploadIntakeFormConfig();
+
       this.#uploaderInstance = new PrintcartUploader({
         token: this.token,
         productId: this.productId,
@@ -607,8 +701,10 @@ class PrintcartDesignerShopify {
   #registerUploaderEvents() {
     if (this.#uploaderInstance) {
       this.#uploaderInstance.on("upload-success", (data: [DataWrap]) => {
-        this.#handleUploadSuccess(data);
-        this.#uploaderInstance.close();
+        // order-upload-buyer-journey-spec.vi.md §5, §12b, §14.1: before the
+        // design is attached to the cart, ask for name/email (no "Skip" —
+        // David 2026-09-28: "an upload without an email is useless").
+        this.#openIntakeModal(data);
       });
     }
   }
@@ -646,6 +742,521 @@ class PrintcartDesignerShopify {
         if (callback) callback(data, this.#designerInstance);
       });
     }
+  }
+
+  #fetchWithTimeout(
+    url: string,
+    options: RequestInit,
+    timeoutMs: number
+  ): Promise<Response> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+    return fetch(url, { ...options, signal: controller.signal }).finally(() =>
+      clearTimeout(timeoutId)
+    );
+  }
+
+  async #getUploadIntakeFormConfig(): Promise<void> {
+    try {
+      const token = this.token;
+      if (!token) return;
+
+      const res = await this.#fetchWithTimeout(
+        `${this.#apiUrl}upload-intakes/form-config`,
+        { headers: { "X-PrintCart-Unauth-Token": token } },
+        15000
+      );
+
+      if (!res.ok) return;
+
+      const json = await res.json();
+
+      if (json?.data) {
+        this.#uploadIntakeFormConfig = {
+          phone: json.data.phone ?? DEFAULT_UPLOAD_INTAKE_FORM_CONFIG.phone,
+          note: json.data.note ?? DEFAULT_UPLOAD_INTAKE_FORM_CONFIG.note,
+          require_consent:
+            json.data.require_consent ??
+            DEFAULT_UPLOAD_INTAKE_FORM_CONFIG.require_consent,
+          consent_text:
+            json.data.consent_text ??
+            DEFAULT_UPLOAD_INTAKE_FORM_CONFIG.consent_text,
+          store_name:
+            json.data.store_name ?? DEFAULT_UPLOAD_INTAKE_FORM_CONFIG.store_name,
+        };
+      }
+    } catch (error) {
+      //@ts-ignore
+      console.error("[Printcart] Failed to load upload intake form config", error);
+    }
+  }
+
+  // One silent retry on network error / timeout / 5xx (and any other
+  // non-422 failure) — order-upload-buyer-journey-spec.vi.md §14.1/§16.1:
+  // a failed intake must never block the sale. 422 is a real validation
+  // error and is surfaced to the buyer without retrying.
+  async #submitUploadIntake(
+    body: Record<string, unknown>
+  ): Promise<TUploadIntakeSubmitResult> {
+    const attempt = (): Promise<Response> => {
+      const token = this.token || "";
+
+      return this.#fetchWithTimeout(
+        `${this.#apiUrl}upload-intakes`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-PrintCart-Unauth-Token": token,
+          },
+          body: JSON.stringify(body),
+        },
+        15000
+      );
+    };
+
+    const handle = async (res: Response): Promise<TUploadIntakeSubmitResult> => {
+      if (res.ok) {
+        const json = await res.json();
+        return { ok: true, data: json?.data as IUploadIntakeResult };
+      }
+
+      if (res.status === 422) {
+        let message = "Please check your details and try again.";
+
+        try {
+          const json = await res.json();
+          message = json?.message || message;
+        } catch (parseError) {
+          // keep default message
+        }
+
+        return { ok: false, kind: "validation", message };
+      }
+
+      throw new Error(`upload-intake request failed with status ${res.status}`);
+    };
+
+    try {
+      return await handle(await attempt());
+    } catch (error) {
+      //@ts-ignore
+      console.warn("[Printcart] upload-intake failed, retrying once", error);
+
+      try {
+        return await handle(await attempt());
+      } catch (error2) {
+        //@ts-ignore
+        console.warn(
+          "[Printcart] upload-intake retry failed — continuing without intake",
+          error2
+        );
+        return { ok: false, kind: "fallback" };
+      }
+    }
+  }
+
+  #getPlatformProductInfo(): { productId: string | null; name: string | null } {
+    try {
+      // @ts-ignore
+      const meta = window?.ShopifyAnalytics?.meta;
+      const productId = meta?.product?.id != null ? String(meta.product.id) : null;
+      const name =
+        meta?.product?.title ||
+        document
+          .querySelector("h1.product__title, h1.product-title, h1")
+          ?.textContent?.trim() ||
+        null;
+
+      return { productId, name };
+    } catch (error) {
+      return { productId: null, name: null };
+    }
+  }
+
+  #getQuantity(): number {
+    const form = this.#cartForm ?? this.#productForm;
+    const input = form?.querySelector(
+      'input[name="quantity"], select[name="quantity"]'
+    ) as HTMLInputElement | HTMLSelectElement | null;
+    const value = input ? parseInt(input.value, 10) : NaN;
+
+    return Number.isFinite(value) && value > 0 ? value : 1;
+  }
+
+  #writeIntakeProperty(intakeUuid: string) {
+    let input = <HTMLInputElement>(
+      document.querySelector('input[name="properties[_pcIntake]"]')
+    );
+
+    if (!input) {
+      input = <HTMLInputElement>document.createElement("input");
+      input.type = "hidden";
+      input.name = "properties[_pcIntake]";
+      input.className = "pc-designer_input";
+
+      if (this.#cartForm) {
+        this.#cartForm.appendChild(input);
+      } else {
+        this.#productForm?.appendChild(input);
+      }
+    }
+
+    input.value = intakeUuid;
+  }
+
+  #showTransientNotice(message: string) {
+    const wrap = document.getElementById("pc-designer_wrap");
+    if (!wrap) return;
+
+    let notice = document.getElementById("pc-intake-cancel-notice");
+
+    if (!notice) {
+      notice = document.createElement("div");
+      notice.id = "pc-intake-cancel-notice";
+      notice.className = "pc-intake-cancel-notice";
+      notice.setAttribute("role", "status");
+      wrap.appendChild(notice);
+    }
+
+    notice.textContent = message;
+
+    if (this.#noticeTimeout) clearTimeout(this.#noticeTimeout);
+
+    this.#noticeTimeout = setTimeout(() => {
+      notice?.remove();
+    }, 6000);
+  }
+
+  #closeIntakeModal() {
+    const modal = document.getElementById("pc-intake_wrap");
+    if (modal) modal.remove();
+
+    document.body.classList.remove("pc-overflow");
+  }
+
+  #trapIntakeModalFocus(modal: HTMLElement) {
+    const focusableEls = modal.querySelectorAll<HTMLElement>(
+      'button, input:not([type="hidden"]), textarea, select, [tabindex]:not([tabindex="-1"])'
+    );
+    const firstFocusableEl = focusableEls[0];
+    const lastFocusableEl = focusableEls[focusableEls.length - 1];
+
+    const handleTrap = (e: KeyboardEvent) => {
+      if (e.key !== "Tab") return;
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstFocusableEl) {
+          e.preventDefault();
+          lastFocusableEl?.focus();
+        }
+      } else if (document.activeElement === lastFocusableEl) {
+        e.preventDefault();
+        firstFocusableEl?.focus();
+      }
+    };
+
+    modal.addEventListener("keydown", handleTrap);
+    firstFocusableEl?.focus();
+
+    return () => modal.removeEventListener("keydown", handleTrap);
+  }
+
+  #openIntakeModal(data: [DataWrap]) {
+    const ids = data.map((design) => design.data.id);
+    const files = ids.map((id) => ({ type: "design", id }));
+    const config = this.#uploadIntakeFormConfig;
+    const storeName = config.store_name || "the store";
+    const prefill = prefillBuyerInfo();
+    const idempotencyKey = genIdempotencyKey();
+    const phoneMode = config.phone;
+    const showNote = config.note !== false;
+    const requireConsent = !!config.require_consent;
+    const consentText =
+      config.consent_text ||
+      `I agree to receive emails about this order from ${storeName}.`;
+
+    const existing = document.getElementById("pc-intake_wrap");
+    if (existing) existing.remove();
+
+    const inner = `
+      <button aria-label="Close" id="pc-intake_close-btn"><span data-modal-x></span></button>
+      <div id="pc-intake-content-overlay">
+        <div class="pc-select-inner">
+          <div id="pc-select_container">
+            <form id="pc-intake-form" novalidate>
+              <div class="pc-card_header">
+                <h2 id="pc-intake-title">Send your file to ${escapeHtml(storeName)}</h2>
+                <p class="pc-intake-subtitle">We just need a couple details so we can keep you posted about this file.</p>
+                <div class="pc-alert pc-alert-danger" id="pc-intake-error"></div>
+              </div>
+              <div class="pc-card_body">
+                <div>
+                  <label for="pc-intake-name">Name<span class="pc-field-require">*</span></label>
+                  <input id="pc-intake-name" type="text" name="name" autocomplete="name" value="${escapeHtml(
+                    prefill.name
+                  )}" required />
+                  <span class="pc-intake-field-error" data-error-for="name"></span>
+                </div>
+                <div>
+                  <label for="pc-intake-email">Email<span class="pc-field-require">*</span></label>
+                  <input id="pc-intake-email" type="email" name="email" autocomplete="email" value="${escapeHtml(
+                    prefill.email
+                  )}" required />
+                  <span class="pc-intake-field-error" data-error-for="email"></span>
+                </div>
+                ${
+                  phoneMode !== "hidden"
+                    ? `<div>
+                  <label for="pc-intake-phone">Phone${
+                    phoneMode === "required"
+                      ? '<span class="pc-field-require">*</span>'
+                      : " (optional)"
+                  }</label>
+                  <input id="pc-intake-phone" type="tel" name="phone" autocomplete="tel" value="${escapeHtml(
+                    prefill.phone
+                  )}" ${phoneMode === "required" ? "required" : ""} />
+                  <span class="pc-intake-field-error" data-error-for="phone"></span>
+                </div>`
+                    : ""
+                }
+                ${
+                  showNote
+                    ? `<div>
+                  <label for="pc-intake-note">Note for the store (optional)</label>
+                  <textarea id="pc-intake-note" name="note" maxlength="500"></textarea>
+                </div>`
+                    : ""
+                }
+                <div class="pc-ui-consent-row">
+                  <input type="checkbox" id="pc-intake-consent" name="consent" ${
+                    requireConsent ? "required" : ""
+                  } />
+                  <label for="pc-intake-consent">${escapeHtml(consentText)}${
+      requireConsent ? '<span class="pc-field-require">*</span>' : ""
+    }</label>
+                </div>
+                <span class="pc-intake-field-error" data-error-for="consent"></span>
+              </div>
+              <div class="pc-card_footer">
+                <button type="submit" id="pc-intake-submit">Send file</button>
+              </div>
+              <div class="pc-handle-overlay" id="pc-intake-loader">
+                <div class="pc-boxes">
+                  <div class="pc-box"><div></div><div></div><div></div><div></div></div>
+                  <div class="pc-box"><div></div><div></div><div></div><div></div></div>
+                  <div class="pc-box"><div></div><div></div><div></div><div></div></div>
+                  <div class="pc-box"><div></div><div></div><div></div><div></div></div>
+                </div>
+              </div>
+            </form>
+            <div id="pc-intake-success" class="pc-intake-success" style="display:none;">
+              <div class="pc-intake-success-icon" aria-hidden="true">&#10003;</div>
+              <h2 id="pc-intake-success-title">File received</h2>
+              <div class="pc-ui-reference-badge" id="pc-intake-reference"></div>
+              <p>We&#39;ve saved your file. A confirmation email is on its way.</p>
+              <button type="button" id="pc-intake-continue">Continue</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    const wrap = document.createElement("div");
+    wrap.id = "pc-intake_wrap";
+    wrap.setAttribute("role", "dialog");
+    wrap.setAttribute("aria-modal", "true");
+    wrap.setAttribute("aria-labelledby", "pc-intake-title");
+    wrap.setAttribute("tabIndex", "-1");
+    wrap.innerHTML = inner;
+
+    document.body.appendChild(wrap);
+    wrap.style.display = "flex";
+    document.body.classList.add("pc-overflow");
+
+    const removeTrap = this.#trapIntakeModalFocus(wrap);
+
+    const cancel = () => {
+      removeTrap();
+      window.removeEventListener("keydown", handleEscape);
+      this.#closeIntakeModal();
+      this.#uploaderInstance?.close();
+      this.#showTransientNotice(
+        "Add your name and email to send your file."
+      );
+    };
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") cancel();
+    };
+
+    window.addEventListener("keydown", handleEscape);
+
+    const closeBtn = document.getElementById("pc-intake_close-btn");
+    closeBtn?.addEventListener("click", cancel);
+
+    const form = document.getElementById("pc-intake-form") as HTMLFormElement;
+    const submitBtn = document.getElementById(
+      "pc-intake-submit"
+    ) as HTMLButtonElement;
+    const loader = document.getElementById("pc-intake-loader");
+    const errorBanner = document.getElementById("pc-intake-error");
+    const successView = document.getElementById("pc-intake-success");
+    const continueBtn = document.getElementById("pc-intake-continue");
+    const referenceEl = document.getElementById("pc-intake-reference");
+
+    const setSubmitting = (isSubmitting: boolean) => {
+      loader?.classList.toggle("active", isSubmitting);
+      submitBtn.disabled = isSubmitting;
+      submitBtn.textContent = isSubmitting ? "Sending..." : "Send file";
+      Array.from(form.elements).forEach((el) => {
+        if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
+          el.disabled = isSubmitting;
+        }
+      });
+    };
+
+    const clearFieldErrors = () => {
+      form
+        .querySelectorAll(".pc-intake-field-error")
+        .forEach((el) => (el.textContent = ""));
+    };
+
+    const showFieldError = (field: string, message: string) => {
+      const el = form.querySelector(`[data-error-for="${field}"]`);
+      if (el) el.textContent = message;
+    };
+
+    const validate = (state: TUploadIntakeFormState): boolean => {
+      clearFieldErrors();
+      let valid = true;
+
+      if (!state.name.trim()) {
+        showFieldError("name", "Required");
+        valid = false;
+      }
+
+      if (!state.email.trim()) {
+        showFieldError("email", "Required");
+        valid = false;
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.email)) {
+        showFieldError("email", "Invalid email");
+        valid = false;
+      }
+
+      if (phoneMode === "required" && !state.phone.trim()) {
+        showFieldError("phone", "Required");
+        valid = false;
+      }
+
+      if (requireConsent && !state.consent) {
+        showFieldError("consent", "Required");
+        valid = false;
+      }
+
+      return valid;
+    };
+
+    const readForm = (): TUploadIntakeFormState => {
+      const nameEl = form.elements.namedItem("name") as HTMLInputElement | null;
+      const emailEl = form.elements.namedItem("email") as HTMLInputElement | null;
+      const phoneEl = form.elements.namedItem("phone") as HTMLInputElement | null;
+      const noteEl = form.elements.namedItem("note") as HTMLTextAreaElement | null;
+      const consentEl = form.elements.namedItem(
+        "consent"
+      ) as HTMLInputElement | null;
+
+      return {
+        name: nameEl?.value || "",
+        email: emailEl?.value || "",
+        phone: phoneEl?.value || "",
+        note: noteEl?.value || "",
+        consent: consentEl?.checked || false,
+      };
+    };
+
+    const finishWithoutIntake = () => {
+      this.#handleUploadSuccess(data);
+      this.#uploaderInstance?.close();
+      this.#closeIntakeModal();
+    };
+
+    const showSuccess = (result: IUploadIntakeResult) => {
+      form.style.display = "none";
+      if (successView) successView.style.display = "block";
+      if (referenceEl) referenceEl.textContent = result.reference || "";
+
+      continueBtn?.addEventListener(
+        "click",
+        () => {
+          removeTrap();
+          window.removeEventListener("keydown", handleEscape);
+          this.#handleUploadSuccess(data);
+          this.#writeIntakeProperty(result.intake_uuid);
+          this.#uploaderInstance?.close();
+          this.#closeIntakeModal();
+        },
+        { once: true }
+      );
+
+      continueBtn?.focus();
+    };
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      if (errorBanner) {
+        errorBanner.classList.remove("active");
+        errorBanner.textContent = "";
+      }
+
+      const state = readForm();
+      if (!validate(state)) return;
+
+      setSubmitting(true);
+
+      const platformInfo = this.#getPlatformProductInfo();
+
+      const result = await this.#submitUploadIntake({
+        idempotency_key: idempotencyKey,
+        platform: "shopify",
+        product: {
+          printcart_product_id: this.productId,
+          platform_product_id: platformInfo.productId,
+          platform_variant_id: this.#variantId,
+          name: platformInfo.name,
+        },
+        quantity: this.#getQuantity(),
+        files,
+        buyer: {
+          name: state.name.trim(),
+          email: state.email.trim(),
+          phone: state.phone.trim() || null,
+          note: state.note.trim() || null,
+          consent: state.consent,
+        },
+        page_url: typeof location !== "undefined" ? location.href : null,
+      });
+
+      setSubmitting(false);
+
+      if (result.ok) {
+        showSuccess(result.data);
+        return;
+      }
+
+      if (result.kind === "validation") {
+        if (errorBanner) {
+          errorBanner.textContent = result.message;
+          errorBanner.classList.add("active");
+        }
+        return;
+      }
+
+      // Network error / timeout / 5xx after one retry: never lose the sale.
+      finishWithoutIntake();
+    });
   }
 
   #getUnauthToken() {

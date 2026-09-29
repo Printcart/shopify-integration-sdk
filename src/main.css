@@ -16,6 +16,7 @@
 }
 
 #pc-quotation-request_wrap,
+#pc-intake_wrap,
 #pc-select_wrap {
   display: none;
   position: fixed;
@@ -32,6 +33,7 @@
 }
 
 #pc-quotation-request_wrap *,
+#pc-intake_wrap *,
 #pc-select_wrap * {
   font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif,
@@ -252,6 +254,7 @@
 }
 
 #pc-qr_close-btn,
+#pc-intake_close-btn,
 #pc-select_close-btn {
   background: none;
   border: none;
@@ -266,6 +269,7 @@
 }
 
 #pc-qr_close-btn:hover [data-modal-x],
+#pc-intake_close-btn:hover [data-modal-x],
 #pc-select_close-btn:hover [data-modal-x] {
   transform: scale(1.2) rotate(45deg);
   transition: transform 0.2s ease-in-out;
@@ -489,28 +493,34 @@
   transition-duration: 150ms;
   position: relative;
 }
-#quotation-request-form .pc-card_header {
+#quotation-request-form .pc-card_header,
+#pc-intake-form .pc-card_header {
   padding: 20px 16px 16px 16px;
   background-color: var(--pc-white-full);
 }
-#quotation-request-form .pc-card_body {
+#quotation-request-form .pc-card_body,
+#pc-intake-form .pc-card_body {
   padding: 12px 16px;
 }
-#quotation-request-form .pc-card_footer {
+#quotation-request-form .pc-card_footer,
+#pc-intake-form .pc-card_footer {
   display: flex;
   flex-direction: row-reverse;
   padding: 12px 16px;
 }
-#quotation-request-form .pc-card_body > div {
+#quotation-request-form .pc-card_body > div,
+#pc-intake-form .pc-card_body > div {
   margin-top: 4px;
 }
-#quotation-request-form .pc-card_header h3 {
+#quotation-request-form .pc-card_header h3,
+#pc-intake-form .pc-card_header h2 {
   margin: 0;
   font-weight: 500;
   font-size: 1.125rem;
   line-height: 1.5;
 }
-#quotation-request-form label {
+#quotation-request-form label,
+#pc-intake-form label {
   display: block;
   margin-bottom: 5px;
   font-weight: 500;
@@ -523,13 +533,17 @@
 #quotation-request-form input[type="email"],
 #quotation-request-form input[type="tel"],
 #quotation-request-form textarea,
-#quotation-request-form input[type="file"] {
+#quotation-request-form input[type="file"],
+#pc-intake-form input[type="text"],
+#pc-intake-form input[type="email"],
+#pc-intake-form input[type="tel"],
+#pc-intake-form textarea {
   width: 100%;
   padding: 6px 8px;
   border: none;
   border-radius: 6px;
   box-sizing: border-box;
-  min-width: 450px;
+  min-width: 320px;
   font-size: 0.875rem;
   line-height: 1.5;
   box-shadow: rgba(0, 0, 0, 0) 0px 0px 0px 0px,
@@ -542,12 +556,14 @@
   cursor: pointer;
 }
 
-#quotation-request-form textarea {
+#quotation-request-form textarea,
+#pc-intake-form textarea {
   resize: vertical;
-  min-height: 100px;
+  min-height: 80px;
 }
 
-#pc-submit-quota {
+#pc-submit-quota,
+#pc-intake-submit {
   background-color: var(--pc-primary-color);
   color: var(--pc-white-color);
   border: none;
@@ -560,15 +576,162 @@
   line-height: 1.5;
 }
 
-#pc-submit-quota:hover {
+#pc-submit-quota:hover,
+#pc-intake-submit:hover {
   background-color: var(--pc-primary-color);
   opacity: 0.9;
+}
+
+#pc-intake-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 label .pc-field-require {
   color: var(--pc-red-color);
   margin-left: 4px;
 }
 /* End Quote */
+
+/* Upload intake (order-upload-buyer-journey-spec.vi.md §5/§14.1) */
+#pc-intake-content-overlay {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: rgb(100, 100, 100);
+  top: 0;
+  transition: all 0.15s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+#pc-select_container #pc-intake-form,
+#pc-select_container .pc-intake-success {
+  box-shadow: rgba(0, 0, 0, 0) 0px 0px 0px 0px;
+  border: 1px solid var(--pc-border-color);
+  background-color: var(--pc-white-color);
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  max-width: 420px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.pc-intake-success {
+  padding: 32px 24px;
+  text-align: center;
+}
+
+.pc-intake-success-icon {
+  width: 48px;
+  height: 48px;
+  line-height: 48px;
+  border-radius: 50%;
+  background-color: var(--pc-green-color);
+  color: var(--pc-white-full);
+  font-size: 24px;
+  margin: 0 auto 16px auto;
+}
+
+.pc-intake-success h2 {
+  margin: 0 0 8px 0;
+  font-size: 1.125rem;
+  font-weight: 500;
+}
+
+.pc-intake-success p {
+  color: var(--pc-gray-medium-color);
+  font-size: 0.875rem;
+}
+
+.pc-ui-reference-badge {
+  display: inline-block;
+  margin: 4px 0 12px 0;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background-color: var(--pc-white-full);
+  border: 1px solid var(--pc-border-color);
+  font-weight: 600;
+  font-size: 0.875rem;
+  letter-spacing: 0.02em;
+}
+
+#pc-intake-continue {
+  background-color: var(--pc-primary-color);
+  color: var(--pc-white-color);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.pc-intake-subtitle {
+  color: var(--pc-gray-medium-color);
+  font-size: 0.8125rem;
+  margin: 4px 0 0 0;
+}
+
+.pc-intake-field-error {
+  display: block;
+  color: var(--pc-red-color);
+  font-size: 0.75rem;
+  margin-top: 4px;
+  min-height: 14px;
+}
+
+.pc-ui-consent-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.pc-ui-consent-row input[type="checkbox"] {
+  margin-top: 3px;
+  width: auto !important;
+  min-width: 0 !important;
+  cursor: pointer;
+}
+
+.pc-ui-consent-row label {
+  margin-bottom: 0;
+  font-weight: 400 !important;
+  cursor: pointer;
+}
+
+#pc-intake-error {
+  margin-top: 8px;
+}
+
+.pc-intake-cancel-notice {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: var(--pc-white-color);
+  border: 1px solid var(--pc-border-color);
+  color: var(--pc-gray-medium-color);
+  font-size: 0.8125rem;
+}
+
+@media only screen and (max-width: 600px) {
+  #pc-select_container #pc-intake-form,
+  #pc-select_container .pc-intake-success {
+    max-width: 92vw;
+  }
+
+  #pc-intake-form input[type="text"],
+  #pc-intake-form input[type="email"],
+  #pc-intake-form input[type="tel"],
+  #pc-intake-form textarea {
+    min-width: 0 !important;
+  }
+}
+/* End Upload intake */
 
 /* Loader */
 .pc-handle-overlay {
